@@ -5,6 +5,8 @@ dotenv.config(); // Load .env variables
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
+const inputTerminalContent = process.argv.slice(2).join(' ');
+
 const main = async () => {
   const response = await groq.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
@@ -13,24 +15,25 @@ const main = async () => {
     // stop: 'ral',
     // max_completion_tokens: 1000,
     // max_tokens:1000,
+    response_format: { type: 'json_object' },
     messages: [
       {
         role: 'system',
         content: ` You are Bunny, You are a sentiment analysis assistant.
            Given any product review, respond with only one word:
-         "positive", "negative", or "neutral" — depending on the overall sentiment of the review.
-         Do not include any explanations, punctuation, or extra words.`,
+         "Positive", "Negative", or "Neutral" — depending on the overall sentiment of the review.
+          You must return result valid json example like {"Sentiment": "Positive", "Id": "1"} or {"Sentiment": "Negative", "Id": "2"} or {"Sentiment": "Neutral", "Id": "3"}
+          please check id also. Like for Positive Id = 1 and Negative Id = 2 and Neutral Id = 3. Make sure each sentiment has associate Id
+         `,
       },
       {
         role: 'user',
-        content: `Review: The headphone sound quality is okkiesh class.
-                Sentiment:`,
+        content: inputTerminalContent,
       },
     ],
   });
 
-  console.log(response.choices[0].message.content);
-  //   console.log(response);
+  console.log(JSON.parse(response.choices[0].message.content));
 };
 
 main();
