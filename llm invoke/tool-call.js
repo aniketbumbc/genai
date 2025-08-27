@@ -1,27 +1,30 @@
 import Groq from 'groq-sdk';
 import dotenv from 'dotenv';
+import { tavily } from '@tavily/core';
 
 dotenv.config(); // Load .env variables
 
+const tvly = tavily({ apiKey: process.env.TAVILY_API_KEY });
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const main = async () => {
-  const response = await groq.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
-    temperature: 0,
-    messages: [
-      {
-        role: 'system',
-        content: `You are smart personal assistant who answers the asked questions.
+  const messages = [
+    {
+      role: 'system',
+      content: `You are smart personal assistant who answers the asked questions.
         You have access following tools:
         1. searchWeb({query}) // search latest information and realtime data on the internet
         `,
-      },
-      {
-        role: 'user',
-        content:
-          'Tell me about online game platform allowed in india? what is current news',
-      },
-    ],
+    },
+    {
+      role: 'user',
+      content: 'is there any festival going on in mumbai now',
+    },
+  ];
+
+  const response = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
+    temperature: 0,
+    messages: messages,
     tools: [
       {
         type: 'function',
@@ -45,6 +48,8 @@ const main = async () => {
     tool_choice: 'auto',
   });
 
+  messages.push(response.choices[0].message);
+
   const toolCalls = response.choices[0].message.tool_calls;
   let toolResponse;
 
@@ -59,14 +64,34 @@ const main = async () => {
 
     if (toolName === 'webSearch') {
       toolResponse = await webSearch(JSON.parse(params));
-      console.log('toolResponse', toolResponse);
+      messages.push({
+        tool_call_id: tool.id,
+        role: 'tool',
+        name: toolName,
+        content: toolResponse,
+      });
     }
   }
+
+  console.log('messages', messages);
+
+  const response2 = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
+    temperature: 0,
+    messages: messages,
+  });
+
+  console.log(response2.choices[0].message.content);
 };
 
 main();
 
 const webSearch = async ({ query }) => {
-  console.log('webSearch calling');
-  return 'Online game platform banned in india 22 August';
+  const response = await tvly.search(query);
+
+  const finalContent = response.results
+    .map((result) => result.content)
+    .join('\n\n');
+
+  return finalContent;
 };
