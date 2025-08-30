@@ -9,6 +9,8 @@ const TOOL_OPTIONS = [
 const ChatUi = () => {
     const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [isThinking, setIsThinking] = useState(false);
+
   const [selectedTool, setSelectedTool] = useState(TOOL_OPTIONS[0].id);
   const chatEndRef = useRef(null);
 
@@ -39,20 +41,21 @@ const ChatUi = () => {
 
 
   const sendMessage = async() => {
+    setIsThinking(true)
     if (!input.trim()) return;
     const userMsg = { id: Date.now(), sender: "user", text: input.trim() };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     
-    const botMessage = await postMessageToLlm(input.trim())
-
-      const botReply = {
+      const botMessage = await postMessageToLlm(input.trim())
+        const botReply = {
         id: Date.now() + 1,
         sender: "bot",
         text: botMessage,
       };
+      setIsThinking(false)
       setMessages((prev) => [...prev, botReply]);
- 
+
   };
 
   const callTool = () => {
@@ -67,10 +70,12 @@ const ChatUi = () => {
       <div className="chat-window">
         {messages.map(({ id, sender, text }) => (
           <div key={id} className={`msg ${sender}`}>
-           
             <div className="bubble">{text}</div>
           </div>
         ))}
+           {isThinking && (
+          <div className="label thinking">Thinking...</div>
+        )}
         <div ref={chatEndRef} />
       </div>
       <div className="input-bar">
