@@ -49,6 +49,7 @@
   font-size: 15px;
   line-height: 1.4;
   max-width: 100%;
+  margin-bottom: 100px; 
   word-wrap: break-word;
 }
 
@@ -58,13 +59,14 @@
 }
 
 /* Bottom input bar */
+
 .input-bar {
-  position: fixed;               /* stick to viewport */
-  bottom: 0;                     /* align to bottom */
-  left: 50%;                     /* center horizontally */
-  transform: translateX(-50%);   /* exact centering */
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
   width: 100%;
-  max-width: 920px;              /* like ChatGPT's input width */
+  max-width: 920px;
   padding: 30px;
   background-color: #40414f;
   gap: 10px;
@@ -72,9 +74,11 @@
   align-items: center;
   border-top: 1px solid #2c2d32;
   box-sizing: border-box;
-  z-index: 10;
-  margin-bottom: 100px;
+
 }
+
+
+
 
 .input-bar input {
   flex: 1;

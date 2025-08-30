@@ -7,10 +7,7 @@ const TOOL_OPTIONS = [
 ];
 
 const ChatUi = () => {
-    const [messages, setMessages] = useState([
-    { id: 1, sender: "bot", text: "Hello! How can I assist you today?" },
-     { id: 2, sender: "user", text: "Hello! How can I assist you today?" },
-  ]);
+    const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [selectedTool, setSelectedTool] = useState(TOOL_OPTIONS[0].id);
   const chatEndRef = useRef(null);
@@ -19,19 +16,43 @@ const ChatUi = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const sendMessage = () => {
+
+  const postMessageToLlm = async(message) => {
+    const url = 'http://localhost:3001/chat'
+
+    const response = await fetch(url,{
+      method:"POST",
+      headers:{
+        'content-type':'application/json'
+      },
+      body: JSON.stringify({message:message})
+    })
+
+    if(!response.ok){
+      throw new Error("Error generating the response")
+    }
+
+    const result = await response.json()
+    return result.message
+  }
+
+
+
+  const sendMessage = async() => {
     if (!input.trim()) return;
     const userMsg = { id: Date.now(), sender: "user", text: input.trim() };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
-    setTimeout(() => {
+    
+    const botMessage = await postMessageToLlm(input.trim())
+
       const botReply = {
         id: Date.now() + 1,
         sender: "bot",
-        text: `You said: "${userMsg.text}"`,
+        text: botMessage,
       };
       setMessages((prev) => [...prev, botReply]);
-    }, 1000);
+ 
   };
 
   const callTool = () => {
@@ -46,7 +67,7 @@ const ChatUi = () => {
       <div className="chat-window">
         {messages.map(({ id, sender, text }) => (
           <div key={id} className={`msg ${sender}`}>
-            <div className="label">{sender === "user" ? "User" : "Bot"}</div>
+           
             <div className="bubble">{text}</div>
           </div>
         ))}
