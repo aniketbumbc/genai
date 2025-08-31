@@ -34,7 +34,7 @@ When calling the 'universityInfoSearch' tool:
 - You must return the **tool's response exactly as received**, without adding, rephrasing, summarizing, or interpreting it in any way.
 - DO NOT modify, wrap, or reword the response.
 - DO NOT add any introductions, explanations, or follow-up text.
-- DO NOT call webSearch tool give direct response from universityInfoSearch tool as it is.
+- DO NOT call searchWeb tool give direct response from universityInfoSearch tool as it is.
 - Simply output in text the raw response returned by the tool — nothing more, nothing less do not use any styling.
 
 Your role in this case is to act only as a **relay**, passing the tool's response directly to the user.
@@ -65,7 +65,7 @@ Behavior Guidelines:
         {
           type: 'function',
           function: {
-            name: 'webSearch',
+            name: 'searchWeb',
             description:
               'search latest information and realtime data on the internet',
             parameters: {
@@ -125,8 +125,8 @@ Behavior Guidelines:
       console.log('toolName', toolName);
       console.log('params', params);
 
-      if (toolName === 'webSearch') {
-        toolResponse = await webSearch(JSON.parse(params));
+      if (toolName === 'searchWeb') {
+        toolResponse = await searchWeb(JSON.parse(params));
         messages.push({
           tool_call_id: tool.id,
           role: 'tool',
@@ -148,8 +148,8 @@ Behavior Guidelines:
   }
 };
 
-const webSearch = async ({ query }) => {
-  console.log('Calling..... Web Search');
+const searchWeb = async ({ query }) => {
+  console.log('Calling..... search web');
   const response = await tvly.search(query);
 
   const finalContent = response.results
