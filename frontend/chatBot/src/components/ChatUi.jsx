@@ -1,5 +1,6 @@
-import React, { useState,useRef,useEffect } from 'react';
+import  { useState,useRef,useEffect } from 'react';
 import './Chat-Style.css'
+import { v4 as uuidv4 } from 'uuid';
 
 const TOOL_OPTIONS = [
   { id: "funFact", label: "Fun Fact" },
@@ -7,10 +8,10 @@ const TOOL_OPTIONS = [
 ];
 
 const ChatUi = () => {
-    const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
-
+  const [threadId] = useState(() => uuidv4());
   const [selectedTool, setSelectedTool] = useState(TOOL_OPTIONS[0].id);
   const chatEndRef = useRef(null);
 
@@ -27,7 +28,7 @@ const ChatUi = () => {
       headers:{
         'content-type':'application/json'
       },
-      body: JSON.stringify({message:message})
+      body: JSON.stringify({message:message, threadId})
     })
 
     if(!response.ok){

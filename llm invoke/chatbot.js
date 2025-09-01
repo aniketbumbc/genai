@@ -1,14 +1,16 @@
 import dotenv from 'dotenv';
 import { tavily } from '@tavily/core';
 import OpenAI from 'openai';
+import NodeCache from 'node-cache';
 
 dotenv.config(); // Load .env variables
 
 const tvly = tavily({ apiKey: process.env.TAVILY_API_KEY });
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const nodeCache = new NodeCache({ stdTTL: 60 * 60 * 24 }); // 24 hours TTL.
 
-export const generateMessage = async (userMessage) => {
-  const messages = [
+export const generateMessage = async (userMessage, threadId) => {
+  const initialMessages = [
     {
       role: 'system',
       content: `You are a smart personal assistant designed to help users by answering their questions clearly, accurately, and efficiently.
@@ -50,6 +52,8 @@ Behavior Guidelines:
 `,
     },
   ];
+
+  const messages = nodeCache.get(threadId) ?? initialMessages;
 
   messages.push({
     role: 'user',
@@ -109,21 +113,16 @@ Behavior Guidelines:
     let toolResponse;
 
     if (!toolCalls) {
+      nodeCache.set(threadId, messages);
       const rawResponse = response.choices[0].message.content;
-      console.log(rawResponse);
-
       const decoded = rawResponse.replace(/\\n/g, '\n');
       const cleaned = decoded.replace(/\*\*/g, '');
-      console.log(cleaned);
       return cleaned;
     }
 
     for (const tool of toolCalls) {
       const toolName = tool.function.name;
       const params = tool.function.arguments;
-
-      console.log('toolName', toolName);
-      console.log('params', params);
 
       if (toolName === 'searchWeb') {
         toolResponse = await searchWeb(JSON.parse(params));
@@ -134,9 +133,7 @@ Behavior Guidelines:
           content: toolResponse,
         });
       } else if (toolName === 'universityInfoSearch') {
-        console.log('Calling universitySearch', toolName);
         toolResponse = await universityInfoSearch(JSON.parse(params));
-        console.log('Response: ', toolResponse);
         messages.push({
           tool_call_id: tool.id,
           role: 'tool',
@@ -149,7 +146,6 @@ Behavior Guidelines:
 };
 
 const searchWeb = async ({ query }) => {
-  console.log('Calling..... search web');
   const response = await tvly.search(query);
 
   const finalContent = response.results

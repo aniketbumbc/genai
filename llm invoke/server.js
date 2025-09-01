@@ -13,10 +13,10 @@ app.get('/', (req, res) => {
 });
 
 app.post('/chat', async (req, res) => {
-  const { message } = req.body;
-  console.log(message);
+  const { message, threadId } = req.body;
+  // Need to validate message and thredId filed
 
-  const result = await generateMessage(message);
+  const result = await generateMessage(message, threadId);
 
   res.json({ message: result });
 });
