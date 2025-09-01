@@ -60,7 +60,16 @@ Behavior Guidelines:
     content: userMessage,
   });
 
+  const MAX_RETRIES = 5;
+  let count = 0;
+
   while (true) {
+    if (count > MAX_RETRIES) {
+      return 'I not able find result Please try some time';
+    }
+
+    count++;
+
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       temperature: 0,
