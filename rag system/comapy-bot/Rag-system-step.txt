@@ -1,0 +1,16 @@
+console.log('Welcome company bot');
+
+/**
+ *
+ *  stage 1: Indexing
+ * 1. load the documents.
+ * 2. chunk the documents.
+ * 3. generate vector embeddings
+ * 4. store in vector db this embeddings.
+ *
+ * stage 2: Implement llm
+ * 1. setup llm
+ * 2. add retrieval step (pass data to llm)
+ * 3. generate llm
+ *
+ */
