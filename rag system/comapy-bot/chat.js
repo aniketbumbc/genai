@@ -7,18 +7,21 @@ dotenv.config();
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-export const chat = async () => {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
+export const chat = async (question) => {
+  // const rl = readline.createInterface({
+  //   input: process.stdin,
+  //   output: process.stdout,
+  // });
+
+  const MAX_RETRIES = 5;
+  let count = 0;
 
   while (true) {
-    const question = await rl.question('You: ');
-
-    if (question === 'bye') {
-      break;
+    if (count > MAX_RETRIES) {
+      return 'I not able find result Please try some time';
     }
+
+    count++;
 
     // retrieval
 
@@ -62,10 +65,6 @@ Answer:
       ],
     });
 
-    console.log(`Assistant: ${response.choices[0].message.content}`);
+    return response.choices[0].message.content;
   }
-
-  rl.close();
 };
-
-chat();
