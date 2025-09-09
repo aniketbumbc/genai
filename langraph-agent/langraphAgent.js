@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import { ChatOpenAI } from '@langchain/openai';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
+import { TavilySearch } from '@langchain/tavily';
 
 dotenv.config();
 
@@ -11,21 +12,30 @@ const main = async () => {
     apiKey: process.env.OPENAI_API_KEY,
   });
 
+  const tavilySearch = new TavilySearch({
+    maxResults: 3,
+    topic: 'general',
+    tavilyApiKey: process.env.TAVILY_API_KEY,
+  });
+
   const agent = createReactAgent({
     llm: agentModel,
-    tools: [],
+    tools: [tavilySearch],
   });
 
   const result = await agent.invoke({
     messages: [
       {
         role: 'user',
-        content: 'Hello I am Aniket',
+        content: 'What is current weather in Mumbai',
       },
     ],
   });
 
-  console.log('Result: ', result);
+  console.log(
+    'Assistant:',
+    result.messages[result.messages.length - 1].content
+  );
 };
 
 main();
