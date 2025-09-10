@@ -4,10 +4,17 @@ import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { TavilySearch } from '@langchain/tavily';
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
+import { writeFileSync } from 'node:fs';
+import readline from 'node:readline/promises';
 
 dotenv.config();
 
 const main = async () => {
+  let rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
   const agentModel = new ChatOpenAI({
     model: 'gpt-4o',
     temperature: 0,
@@ -22,6 +29,7 @@ const main = async () => {
 
   const calendarEvents = tool(
     async ({ query }) => {
+      console.log(query);
       // google calender logic here
       return JSON.stringify([
         {
@@ -88,11 +96,18 @@ const main = async () => {
     tools: [tavilySearch, calendarEvents, saladsPrepList],
   });
 
-  const result = await agent.invoke({
-    messages: [
-      {
-        role: 'system',
-        content: `You are a helpful, organized, and proactive **personal assistant**.
+  while (true) {
+    const userQuery = await rl.question('User: ');
+
+    if (userQuery === 'bye') {
+      break;
+    }
+
+    const result = await agent.invoke({
+      messages: [
+        {
+          role: 'system',
+          content: `You are a helpful, organized, and proactive **personal assistant**.
 
 You have access to the following tools and should use them when needed to help the user:
 
@@ -122,19 +137,30 @@ current date and time :${new Date().toUTCString()}
 
 Always think before acting, and clearly explain what you're doing when using a tool.
 `,
-      },
+        },
 
-      {
-        role: 'user',
-        content: 'Can i take a nap for 2 hours today?',
-      },
-    ],
-  });
+        {
+          role: 'user',
+          content: userQuery,
+        },
+      ],
+    });
 
-  console.log(
-    'Assistant:',
-    result.messages[result.messages.length - 1].content
-  );
+    console.log(
+      'Assistant: ',
+      result.messages[result.messages.length - 1].content
+    );
+  }
+
+  // const drawableGraphGraphState = await agent.getGraphAsync();
+
+  // const graphStateImage = await drawableGraphGraphState.drawMermaidPng();
+  // const graphStateArrayBuffer = await graphStateImage.arrayBuffer();
+
+  // const filePath = './graphState.png';
+  // writeFileSync(filePath, new Uint8Array(graphStateArrayBuffer));
+
+  rl.close();
 };
 
 main();
