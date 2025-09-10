@@ -5,6 +5,7 @@ import { TavilySearch } from '@langchain/tavily';
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
 import { writeFileSync } from 'node:fs';
+import { MemorySaver } from '@langchain/langgraph';
 import readline from 'node:readline/promises';
 
 dotenv.config();
@@ -14,6 +15,8 @@ const main = async () => {
     input: process.stdin,
     output: process.stdout,
   });
+
+  const agentCheckpointer = new MemorySaver();
 
   const agentModel = new ChatOpenAI({
     model: 'gpt-4o',
@@ -94,6 +97,7 @@ const main = async () => {
   const agent = createReactAgent({
     llm: agentModel,
     tools: [tavilySearch, calendarEvents, saladsPrepList],
+    checkpointSaver: agentCheckpointer,
   });
 
   while (true) {
@@ -103,11 +107,12 @@ const main = async () => {
       break;
     }
 
-    const result = await agent.invoke({
-      messages: [
-        {
-          role: 'system',
-          content: `You are a helpful, organized, and proactive **personal assistant**.
+    const result = await agent.invoke(
+      {
+        messages: [
+          {
+            role: 'system',
+            content: `You are a helpful, organized, and proactive **personal assistant**.
 
 You have access to the following tools and should use them when needed to help the user:
 
@@ -137,14 +142,16 @@ current date and time :${new Date().toUTCString()}
 
 Always think before acting, and clearly explain what you're doing when using a tool.
 `,
-        },
+          },
 
-        {
-          role: 'user',
-          content: userQuery,
-        },
-      ],
-    });
+          {
+            role: 'user',
+            content: userQuery,
+          },
+        ],
+      },
+      { configurable: { thread_id: '42' } }
+    );
 
     console.log(
       'Assistant: ',
