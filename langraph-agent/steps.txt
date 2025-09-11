@@ -1,0 +1,4 @@
+1. setup llm
+2. build graph.
+3.create reactAgent
+4. Add memory to it 
