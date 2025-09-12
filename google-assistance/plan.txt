@@ -1,0 +1,10 @@
+### Project plan ###
+
+1. Setup Project
+2. Setup LLM using lagraph
+3. Setup tools ( Create event tool, get event tool) with hardcode data to check.
+4. Build the graph
+5. Call Google calendar connection
+6. Test data with actual tool
+7. Terminal ui for interaction
+8. Add the memory 
