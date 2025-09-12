@@ -6,6 +6,8 @@ import { ToolNode } from '@langchain/langgraph/prebuilt';
 import { MessagesAnnotation, StateGraph, END } from '@langchain/langgraph';
 import { z } from 'zod';
 import { writeFileSync } from 'node:fs';
+import readline from 'node:readline/promises';
+
 dotenv.config();
 /**
  *
@@ -94,21 +96,39 @@ const graph = new StateGraph(MessagesAnnotation)
 const app = graph.compile();
 
 const main = async () => {
-  const result = await app.invoke({
-    messages: [{ role: 'user', content: 'what is weather in baltimore' }],
+  let rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
   });
 
+  while (true) {
+    const userQuestion = await rl.question('You: ');
+
+    if (userQuestion === 'bye') {
+      break;
+    }
+
+    const result = await app.invoke({
+      messages: [{ role: 'user', content: userQuestion }],
+    });
+
+    generateGraph();
+
+    const lastMessageContent =
+      result.messages?.[result.messages.length - 1].content;
+
+    console.log('Assistant: ', lastMessageContent);
+  }
+  rl.close();
+};
+
+main();
+
+const generateGraph = async () => {
   const drawableGraphGraphState = await app.getGraphAsync();
   const graphStateImage = await drawableGraphGraphState.drawMermaidPng();
   const graphStateArrayBuffer = await graphStateImage.arrayBuffer();
 
   const filePath = './customGraph.png';
   writeFileSync(filePath, new Uint8Array(graphStateArrayBuffer));
-
-  const lastMessageContent =
-    result.messages?.[result.messages.length - 1].content;
-
-  console.log('Assistant: ', lastMessageContent);
 };
-
-main();
