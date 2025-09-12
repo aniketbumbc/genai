@@ -1,9 +1,10 @@
 import dotenv from 'dotenv';
 import { ChatOpenAI } from '@langchain/openai';
+import { createCalenderEvent, getCalendarEvents } from './tool.js';
 
 dotenv.config();
 
-const tools: any = [];
+const tools: any = [createCalenderEvent, getCalendarEvents];
 
 const llm = new ChatOpenAI({
   model: 'gpt-4o',
