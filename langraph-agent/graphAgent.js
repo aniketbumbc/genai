@@ -7,8 +7,15 @@ import { MessagesAnnotation, StateGraph, END } from '@langchain/langgraph';
 import { z } from 'zod';
 import { writeFileSync } from 'node:fs';
 import readline from 'node:readline/promises';
+import { MemorySaver } from '@langchain/langgraph';
 
 dotenv.config();
+
+/***
+ *  Memory saver
+ */
+const agentCheckpointer = new MemorySaver();
+
 /**
  *
  * Tools
@@ -44,8 +51,6 @@ const calendarEvents = tool(
 );
 
 const callModelNode = async (state) => {
-  console.log('Calling model');
-
   const response = await llm.invoke(state.messages);
 
   return { messages: [response] }; // this return added to global state to store
@@ -91,11 +96,16 @@ const graph = new StateGraph(MessagesAnnotation)
   .addNode('funcNode', toolNode)
   .addEdge('__start__', 'llm')
   .addEdge('funcNode', 'llm')
-  .addConditionalEdges('llm', checkCurrentStatus);
+  .addConditionalEdges('llm', checkCurrentStatus, {
+    __end__: END,
+    funcNode: toolNode,
+  });
 
-const app = graph.compile();
+const app = graph.compile({ checkpointer: agentCheckpointer });
 
 const main = async () => {
+  let config = { configurable: { thread_id: '42' } };
+
   let rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -108,9 +118,12 @@ const main = async () => {
       break;
     }
 
-    const result = await app.invoke({
-      messages: [{ role: 'user', content: userQuestion }],
-    });
+    const result = await app.invoke(
+      {
+        messages: [{ role: 'user', content: userQuestion }],
+      },
+      config
+    );
 
     generateGraph();
 
