@@ -1,6 +1,9 @@
 import dotenv from 'dotenv';
 import { ChatOpenAI } from '@langchain/openai';
-import { createCalenderEvent, getCalendarEvents } from './tool.js';
+// @ts-ignore
+import { createCalenderEvent, getCalendarEvents } from './tool.ts';
+import { MessagesAnnotation, StateGraph, END } from '@langchain/langgraph';
+import { ToolNode } from '@langchain/langgraph/prebuilt';
 
 dotenv.config();
 
@@ -12,4 +15,64 @@ const llm = new ChatOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 }).bindTools(tools);
 
-console.log('Weleomce to google assistance');
+console.log('Welcome to google assistance');
+
+const callModel = async (state: typeof MessagesAnnotation.State) => {
+  const response = await llm.invoke(state.messages);
+  return { messages: [response] }; // this return added to global state to store
+};
+const toolNode = new ToolNode(tools);
+
+/**
+ *  conditional edge function
+ * @param state
+ * @returns
+ */
+
+const checkCurrentStatus = (state: typeof MessagesAnnotation.State) => {
+  /**
+   * Check previous condition into state ai messages if tool call then return tool
+   * else return END
+   */
+
+  const lastMessage: any = state?.messages[state.messages.length - 1];
+
+  if (!!lastMessage.tool_calls?.length) {
+    return 'tools';
+  }
+
+  return '__end__';
+};
+
+/**
+ *  build graph
+ * // Name of node and function to call
+ */
+
+const graph = new StateGraph(MessagesAnnotation)
+  .addNode('assistance', callModel as any)
+  .addNode('tools', toolNode as any)
+  .addEdge('__start__', 'assistance')
+  .addEdge('tools', 'assistance')
+  .addConditionalEdges('assistance', checkCurrentStatus, {
+    __end__: END,
+    tools: 'tools',
+  });
+
+const app = graph.compile();
+
+const main = async () => {
+  const result: any = await app.invoke({
+    messages: [
+      {
+        role: 'user',
+        content:
+          'Can you create meeting for tomorrow with bunny at zoom call for 30 mins',
+      },
+    ],
+  } as any);
+
+  console.log(`AI: ${result.messages[result.messages.length - 1].content}`);
+};
+
+main();
