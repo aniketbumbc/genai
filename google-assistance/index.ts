@@ -62,12 +62,18 @@ const graph = new StateGraph(MessagesAnnotation)
 const app = graph.compile();
 
 const main = async () => {
+  const today = new Date().toString();
   const result: any = await app.invoke({
     messages: [
       {
+        role: 'system',
+        content: `You are a personal meeting scheduler. 
+You help the user by creating, viewing, and managing their meetings using Google Calendar. 
+Always confirm before scheduling or modifying events. Respond clearly and concisely. today is ${today}`,
+      },
+      {
         role: 'user',
-        content:
-          'Can you create meeting for tomorrow with bunny at zoom call for 30 mins',
+        content: 'can you show meeting in Barcelona this week?',
       },
     ],
   } as any);

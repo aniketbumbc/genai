@@ -1,9 +1,12 @@
 {
 
   "compilerOptions": {
-    "module": "nodenext",
-    "target": "esnext",
+    "module": "esnext",
     "types": [],
+     "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+     "target": "esnext",
 
     // Other Outputs
     "sourceMap": true,
