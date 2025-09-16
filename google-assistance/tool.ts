@@ -2,6 +2,7 @@ import { tool } from '@langchain/core/tools';
 import { google } from 'googleapis';
 import { z } from 'zod';
 import dotenv from 'dotenv';
+import crypto from 'crypto';
 
 dotenv.config();
 
@@ -18,21 +19,71 @@ oauth2Client.setCredentials(JSON.parse(tokensString));
 const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
 export const createCalenderEvent = tool(
-  async () => {
+  async (eventData) => {
     // google calender logic here
-    return ' Meeting has been created';
+
+    try {
+      const { summary, start, end, attendees, location } = eventData as any;
+
+      const response = await calendar.events.insert({
+        calendarId: 'primary',
+        sendUpdates: 'all',
+        conferenceDataVersion: 1,
+        requestBody: {
+          start,
+          end,
+          summary,
+          location,
+          attendees,
+          conferenceData: {
+            createRequest: {
+              requestId: crypto.randomUUID(),
+              conferenceSolutionKey: {
+                type: 'hangoutsMeet',
+              },
+            },
+          },
+        },
+      });
+
+      if (response.statusText === 'OK') {
+        return 'The meeting has been created. Enjoy!!!!';
+      }
+    } catch (error) {
+      console.log('Error: ', error);
+    }
+
+    return 'Oppsss!! Please try again meeting unable to create';
   },
   {
     name: 'create-event',
     description: 'Call to create the calendar events',
+    schema: z.object({
+      summary: z.string().describe('The title of the event'),
+      start: z.object({
+        dateTime: z
+          .string()
+          .describe('The start date time of the event in UTC'),
+        timeZone: z.string().describe('The timezone of the event time in UTC'),
+      }),
+      end: z.object({
+        dateTime: z.string().describe('The end date time of the event in UTC'),
+        timeZone: z.string().describe('The timezone of the event time in UTC'),
+      }),
+      attendees: z.array(
+        z.object({
+          email: z.string().describe('The email of attendees'),
+          displayName: z.string().describe('The name of attendees'),
+        })
+      ),
+      location: z.string().describe('The place/location where meeting is held'),
+    }),
   }
 );
 
 export const getCalendarEvents = tool(
   async (params) => {
     // google calender logic here
-
-    console.log('Params', params);
 
     const { q, timeMin, timeMax } = params;
 
