@@ -2,13 +2,25 @@ import dotenv from 'dotenv';
 import { ChatOpenAI } from '@langchain/openai';
 // @ts-ignore
 import { createCalenderEvent, getCalendarEvents } from './tool.ts';
-import { MessagesAnnotation, StateGraph, END } from '@langchain/langgraph';
+import {
+  MessagesAnnotation,
+  StateGraph,
+  END,
+  MemorySaver,
+} from '@langchain/langgraph';
 import { ToolNode } from '@langchain/langgraph/prebuilt';
 import readline from 'node:readline/promises';
+
+import crypto from 'crypto';
 
 dotenv.config();
 
 const tools: any = [createCalenderEvent, getCalendarEvents];
+
+/***
+ *  Memory saver
+ */
+const agentCheckpointer = new MemorySaver();
 
 const llm = new ChatOpenAI({
   model: 'gpt-4o',
@@ -65,7 +77,8 @@ const graph = new StateGraph(MessagesAnnotation)
     tools: 'tools',
   });
 
-const app = graph.compile();
+const app = graph.compile({ checkpointer: agentCheckpointer });
+const config = { configurable: { thread_id: crypto.randomUUID() } };
 
 const main = async () => {
   while (true) {
@@ -76,20 +89,23 @@ const main = async () => {
     }
 
     const today = new Date().toString();
-    const result: any = await app.invoke({
-      messages: [
-        {
-          role: 'system',
-          content: `You are a personal meeting scheduler. 
+    const result: any = await app.invoke(
+      {
+        messages: [
+          {
+            role: 'system',
+            content: `You are a personal meeting scheduler. 
 You help the user by creating, viewing, and managing their meetings using Google Calendar. 
 directly create scheduling or modifying events. Respond clearly and concisely. today is ${today}`,
-        },
-        {
-          role: 'user',
-          content: question,
-        },
-      ],
-    } as any);
+          },
+          {
+            role: 'user',
+            content: question,
+          },
+        ],
+      } as any,
+      config as any
+    );
 
     console.log(`AI: ${result.messages[result.messages.length - 1].content}`);
   }
