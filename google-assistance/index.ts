@@ -89,6 +89,7 @@ const main = async () => {
     }
 
     const today = new Date().toString();
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const result: any = await app.invoke(
       {
         messages: [
@@ -96,7 +97,7 @@ const main = async () => {
             role: 'system',
             content: `You are a personal meeting scheduler. 
 You help the user by creating, viewing, and managing their meetings using Google Calendar. 
-directly create scheduling or modifying events. Respond clearly and concisely. today is ${today}`,
+directly create scheduling or modifying events. Respond clearly and concisely. today is ${today} and current timeZone ${timeZone}`,
           },
           {
             role: 'user',

@@ -61,14 +61,12 @@ export const createCalenderEvent = tool(
     schema: z.object({
       summary: z.string().describe('The title of the event'),
       start: z.object({
-        dateTime: z
-          .string()
-          .describe('The start date time of the event in UTC'),
-        timeZone: z.string().describe('The timezone of the event time in UTC'),
+        dateTime: z.string().describe('The start date time of the event.'),
+        timeZone: z.string().describe('The current IANA timezone string'),
       }),
       end: z.object({
-        dateTime: z.string().describe('The end date time of the event in UTC'),
-        timeZone: z.string().describe('The timezone of the event time in UTC'),
+        dateTime: z.string().describe('The end date time of the event.'),
+        timeZone: z.string().describe('The current IANA timezone string'),
       }),
       attendees: z.array(
         z.object({
@@ -121,12 +119,8 @@ export const getCalendarEvents = tool(
         .describe(
           'The query to be used to get events from google calendar based on summary or description or location and display name'
         ),
-      timeMin: z
-        .string()
-        .describe('The from datetime in UTC format for the event'),
-      timeMax: z
-        .string()
-        .describe('The to datetime in UTC format for the event'),
+      timeMin: z.string().describe('The from datetime to get the events'),
+      timeMax: z.string().describe('The to datetime to get the events'),
     }),
   }
 );
