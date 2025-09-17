@@ -4,6 +4,7 @@ import { ChatOpenAI } from '@langchain/openai';
 import { createCalenderEvent, getCalendarEvents } from './tool.ts';
 import { MessagesAnnotation, StateGraph, END } from '@langchain/langgraph';
 import { ToolNode } from '@langchain/langgraph/prebuilt';
+import readline from 'node:readline/promises';
 
 dotenv.config();
 
@@ -15,7 +16,12 @@ const llm = new ChatOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 }).bindTools(tools);
 
-console.log('Welcome to google assistance');
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+console.log('Welcome To Google Assistance');
 
 const callModel = async (state: typeof MessagesAnnotation.State) => {
   const response = await llm.invoke(state.messages);
@@ -62,24 +68,32 @@ const graph = new StateGraph(MessagesAnnotation)
 const app = graph.compile();
 
 const main = async () => {
-  const today = new Date().toString();
-  const result: any = await app.invoke({
-    messages: [
-      {
-        role: 'system',
-        content: `You are a personal meeting scheduler. 
+  while (true) {
+    const question = await rl.question('You: ');
+
+    if (question === 'bye') {
+      break;
+    }
+
+    const today = new Date().toString();
+    const result: any = await app.invoke({
+      messages: [
+        {
+          role: 'system',
+          content: `You are a personal meeting scheduler. 
 You help the user by creating, viewing, and managing their meetings using Google Calendar. 
 directly create scheduling or modifying events. Respond clearly and concisely. today is ${today}`,
-      },
-      {
-        role: 'user',
-        content:
-          'can you please schedule a meeting with Aniket Bhavsar (aniket.umbc@gmail.com) 18 September at 6 PM about Diet discussion for an hour at Sydney harbour? ',
-      },
-    ],
-  } as any);
+        },
+        {
+          role: 'user',
+          content: question,
+        },
+      ],
+    } as any);
 
-  console.log(`AI: ${result.messages[result.messages.length - 1].content}`);
+    console.log(`AI: ${result.messages[result.messages.length - 1].content}`);
+  }
+  rl.close();
 };
 
 main();
