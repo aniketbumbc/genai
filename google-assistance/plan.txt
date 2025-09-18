@@ -8,3 +8,9 @@
 6. Test data with actual tool
 7. Terminal ui for interaction
 8. Add the memory 
+
+Next to do 
+1. Improve the system prompt
+2. update and delete meetings
+3. Add new tool to get contacts from email via tool
+4. Add web search tool or rag for search 
