@@ -1,7 +1,11 @@
 import dotenv from 'dotenv';
 import { ChatOpenAI } from '@langchain/openai';
 // @ts-ignore
-import { createCalenderEvent, getCalendarEvents } from './tool.ts';
+import {
+  createCalenderEvent,
+  getCalendarEvents,
+  updateCalendarEvents,
+} from './tool.ts';
 import {
   MessagesAnnotation,
   StateGraph,
@@ -15,7 +19,11 @@ import crypto from 'crypto';
 
 dotenv.config();
 
-const tools: any = [createCalenderEvent, getCalendarEvents];
+const tools: any = [
+  createCalenderEvent,
+  getCalendarEvents,
+  updateCalendarEvents,
+];
 
 /***
  *  Memory saver
@@ -96,7 +104,8 @@ const main = async () => {
           {
             role: 'system',
             content: `You are a personal meeting scheduler. 
-You help the user by creating, viewing, and managing their meetings using Google Calendar. 
+You help the user by creating, viewing, updating and managing their meetings using Google Calendar. 
+You also help to based on tool for update event base on description. 
 directly create scheduling or modifying events. Respond clearly and concisely. today is ${today} and current timeZone ${timeZone}`,
           },
           {

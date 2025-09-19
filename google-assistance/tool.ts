@@ -124,3 +124,58 @@ export const getCalendarEvents = tool(
     }),
   }
 );
+
+export const updateCalendarEvents = tool(
+  async (params) => {
+    const { q, eventId, startDateTime, endDateTime, location, attendees } =
+      params;
+
+    try {
+      const response: any = await calendar.events.update({
+        calendarId: 'primary',
+        eventId: eventId,
+        sendUpdates: 'all',
+        requestBody: {
+          start: {
+            dateTime: startDateTime,
+          },
+          end: {
+            dateTime: endDateTime,
+          },
+          summary: q,
+          location: location,
+          attendees,
+        },
+      });
+
+      return JSON.stringify(response?.data);
+    } catch (error) {
+      console.log('Error: ', error);
+    }
+  },
+
+  {
+    name: 'update-event',
+    description: 'call to update the calendar event',
+    schema: z.object({
+      q: z
+        .string()
+        .describe(
+          'The query to be used to update events from google calendar based on summary or description or location or display name and start time'
+        ),
+      eventId: z.string().describe('The unique id for that event'),
+      startDateTime: z
+        .string()
+        .describe('The start datetime to for the meeting'),
+      endDateTime: z.string().describe('The end datetime to for the meeting'),
+      location: z
+        .string()
+        .describe('The updated location where meeting is held'),
+      attendees: z.array(
+        z.object({
+          email: z.string().describe('The email of attendees'),
+        })
+      ),
+    }),
+  }
+);
