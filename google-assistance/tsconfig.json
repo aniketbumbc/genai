@@ -1,12 +1,12 @@
 {
 
   "compilerOptions": {
-    "module": "esnext",
+    "module": "ESNext",
     "types": [],
      "resolveJsonModule": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
-     "target": "esnext",
+     "target": "ESNext",
 
     // Other Outputs
     "sourceMap": true,

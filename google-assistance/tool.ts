@@ -3,6 +3,9 @@ import { google } from 'googleapis';
 import { z } from 'zod';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
@@ -13,6 +16,11 @@ const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_SECRET,
   process.env.GOOGLE_REDIRECT_URL
 );
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const jsonPath = path.join(__dirname, 'email.json');
+const jsonData = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
 
 oauth2Client.setCredentials(JSON.parse(tokensString));
 
@@ -176,6 +184,35 @@ export const updateCalendarEvents = tool(
           email: z.string().describe('The email of attendees'),
         })
       ),
+    }),
+  }
+);
+
+export const getEmailAddress = tool(
+  async (params) => {
+    const { name } = params;
+    try {
+      for (const person of jsonData) {
+        if (person.name === name) {
+          return person.email;
+        }
+      }
+
+      return `No email found for "${name}".`;
+    } catch (error) {
+      console.log(error);
+      return `Error reading or parsing data: ${error}`;
+    }
+  },
+  {
+    name: 'get-email-address',
+    description: 'call to get email address from json database',
+    schema: z.object({
+      name: z
+        .string()
+        .describe(
+          'The name of client which need to send a mail for email invitation'
+        ),
     }),
   }
 );

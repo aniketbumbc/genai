@@ -5,6 +5,7 @@ import {
   createCalenderEvent,
   getCalendarEvents,
   updateCalendarEvents,
+  getEmailAddress,
 } from './tool.ts';
 import {
   MessagesAnnotation,
@@ -23,6 +24,7 @@ const tools: any = [
   createCalenderEvent,
   getCalendarEvents,
   updateCalendarEvents,
+  getEmailAddress,
 ];
 
 /***
