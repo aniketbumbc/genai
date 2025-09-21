@@ -2,6 +2,10 @@ import express from 'express';
 import { google } from 'googleapis';
 import dotenv from 'dotenv';
 
+/**
+ *  This is one time run file. Only to give access to calendar
+ */
+
 dotenv.config();
 const app = express();
 const PORT = 3600;
@@ -40,5 +44,4 @@ app.get('/googlecallback', async (req, res) => {
 
   res.send('Connected to the app. You can close the tab');
 });
-
 app.listen(PORT, () => console.log('Server is running on Port 3600'));
