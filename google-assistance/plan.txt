@@ -14,3 +14,6 @@ Next to do
 2. update and delete meetings
 3. Add new tool to get contacts from email via tool
 4. Add web search tool or rag for search 
+
+Added Langsmith https://smith.langchain.com/ for observability  added to project.
+https://langfuse.com/self-hosting
