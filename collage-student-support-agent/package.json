@@ -1,0 +1,16 @@
+{
+  "name": "collage-student-support-agent",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@langchain/langgraph": "^0.4.9",
+    "@langchain/openai": "^0.6.13"
+  }
+}
