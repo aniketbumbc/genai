@@ -84,7 +84,6 @@ export const learningSupport = (state) => {
 };
 
 const handleNextFlow = (state) => {
-  console.log('State...', state);
   if (state.nextRepresentative?.includes('MARKETING')) {
     return 'marketingSupport';
   } else if (state.nextRepresentative?.includes('LEARNING')) {
@@ -114,7 +113,8 @@ export const main = async () => {
     messages: [
       {
         role: 'user',
-        content: 'do you have offer going on ?',
+        content:
+          'I have one year experience in java which course should i learn ?',
       },
     ],
   });
