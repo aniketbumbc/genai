@@ -1,6 +1,10 @@
-import { StateGraph } from '@langchain/langgraph';
+import { END, StateGraph } from '@langchain/langgraph';
 import { model } from './model.js';
 import { StateAnnotation } from './state.js';
+import { ToolNode } from '@langchain/langgraph/prebuilt';
+import { getOffers } from './tools.js';
+const marketingTools = [getOffers];
+const marketingToolNode = new ToolNode(marketingTools);
 
 export const frontDeskSupport = async (state) => {
   const SYSTEM_PROMPT = `You are frontline support staff for my website, 
@@ -73,9 +77,35 @@ Otherwise, respond only if the word is "RESPOND".
   };
 };
 
-export const marketingSupport = (state) => {
+export const marketingSupport = async (state) => {
   console.log('Handling by marketing support team.....');
-  return state;
+
+  const llmWithTools = model.bindTools(marketingTools);
+
+  const SYSTEM_PROMPT = `You are part of the marketing team at ed tech  company platform.
+    The company builds that helps software developers excel their careers to practical web development and generative AI courses.
+   You specialise in handling questions about promo codes, discount offers, and special campaigns.
+   Answer clearly, concisely, and in a friendly manner.
+   For queries outside promotions, like course content, learning, politely redirect the student to the correct team.
+   Important: Answer only using given context. Else, I don't have enough information about it.`;
+
+  let constructMessage = state.messages;
+
+  if (constructMessage.at(-1)?.getType() === 'ai') {
+    constructMessage = constructMessage.slice(0, -1);
+  }
+
+  const marketResponse = await llmWithTools.invoke([
+    {
+      role: 'system',
+      content: SYSTEM_PROMPT,
+    },
+    ...constructMessage,
+  ]);
+
+  return {
+    messages: [marketResponse],
+  };
 };
 
 export const learningSupport = (state) => {
@@ -93,17 +123,31 @@ const handleNextFlow = (state) => {
   }
 };
 
+const isMarketingTool = (state) => {
+  const lastMessage = state.messages[state.messages.length - 1];
+  if (lastMessage.tool_calls?.length) {
+    return 'marketingTools';
+  }
+
+  return '__end__';
+};
+
 const graph = new StateGraph(StateAnnotation)
   .addNode('frontDeskSupport', frontDeskSupport)
   .addNode('marketingSupport', marketingSupport)
   .addNode('learningSupport', learningSupport)
+  .addNode('marketingTools', marketingToolNode)
   .addEdge('__start__', 'frontDeskSupport')
-  .addEdge('marketingSupport', '__end__') // tools after removed
-  .addEdge('learningSupport', '__end__')
+  .addEdge('marketingTools', 'marketingSupport')
+  .addEdge('learningSupport', '__end__') // need to removed
   .addConditionalEdges('frontDeskSupport', handleNextFlow, {
     marketingSupport: 'marketingSupport',
     learningSupport: 'learningSupport',
     __end__: '__end__',
+  })
+  .addConditionalEdges('marketingSupport', isMarketingTool, {
+    marketingTools: 'marketingTools',
+    __end__: END,
   });
 
 const app = graph.compile();
@@ -113,8 +157,7 @@ export const main = async () => {
     messages: [
       {
         role: 'user',
-        content:
-          'I have one year experience in java which course should i learn ?',
+        content: 'Is there any discount for course?',
       },
     ],
   });
