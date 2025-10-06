@@ -15,6 +15,10 @@ export const getOffers = tool(
         code: 'FIRST_10',
         discount_percentage: 40,
       },
+      {
+        code: 'FESTIVAL_OFFER',
+        discount_percentage: 15,
+      },
     ]);
   },
   {
