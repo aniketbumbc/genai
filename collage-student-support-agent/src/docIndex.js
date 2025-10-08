@@ -43,4 +43,4 @@ export const indexDocument = async (path) => {
   console.log('Vector Database Add Documents Done');
 };
 
-indexDocument('./cg-knowledge-base.pdf');
+// indexDocument('./cg-knowledge-base.pdf');

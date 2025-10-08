@@ -2,9 +2,11 @@ import { END, StateGraph } from '@langchain/langgraph';
 import { model } from './model.js';
 import { StateAnnotation } from './state.js';
 import { ToolNode } from '@langchain/langgraph/prebuilt';
-import { getOffers } from './tools.js';
+import { getOffers, getKnowledgeBaseTool } from './tools.js';
+const learningTools = [getKnowledgeBaseTool];
 const marketingTools = [getOffers];
 const marketingToolNode = new ToolNode(marketingTools);
+const learningToolNode = new ToolNode(learningTools);
 
 export const frontDeskSupport = async (state) => {
   const SYSTEM_PROMPT = `You are frontline support staff for my website, 
@@ -78,8 +80,6 @@ Otherwise, respond only if the word is "RESPOND".
 };
 
 export const marketingSupport = async (state) => {
-  console.log('Handling by marketing support team.....');
-
   const llmWithTools = model.bindTools(marketingTools);
 
   const SYSTEM_PROMPT = `You are part of the marketing team at ed tech  company platform.
@@ -108,9 +108,33 @@ export const marketingSupport = async (state) => {
   };
 };
 
-export const learningSupport = (state) => {
+export const learningSupport = async (state) => {
   console.log('Handling by learning support team.....');
-  return state;
+  const llmWithTools = model.bindTools(learningTools);
+
+  const SYSTEM_PROMPT = `You are part of the learning support team at CodeScan, a tech company. 
+  The company helps software developers excel in their careers through practical web development and generative AI courses. 
+  You assist students with questions about available courses, syllabus coverage, learning paths, and study strategies to keep your answers concise and supportive. 
+  Strictly use information for retrieved context for answering queries. If the query is about learning issues, politely redirect the student to the respective team. 
+  Important: Call getKnowledgeBaseTool max 3 times if the tool result is not relevant to the original query.`;
+
+  let constructMessage = state.messages;
+
+  if (constructMessage.at(-1)?.getType() === 'ai') {
+    constructMessage = constructMessage.slice(0, -1);
+  }
+
+  const learningResponse = await llmWithTools.invoke([
+    {
+      role: 'system',
+      content: SYSTEM_PROMPT,
+    },
+    ...constructMessage,
+  ]);
+
+  return {
+    messages: [learningResponse],
+  };
 };
 
 const handleNextFlow = (state) => {
@@ -132,14 +156,24 @@ const isMarketingTool = (state) => {
   return '__end__';
 };
 
+const isLearningTool = (state) => {
+  const lastMessage = state.messages[state.messages.length - 1];
+  if (lastMessage.tool_calls?.length) {
+    return 'learningTools';
+  }
+
+  return '__end__';
+};
+
 const graph = new StateGraph(StateAnnotation)
   .addNode('frontDeskSupport', frontDeskSupport)
   .addNode('marketingSupport', marketingSupport)
   .addNode('learningSupport', learningSupport)
   .addNode('marketingTools', marketingToolNode)
+  .addNode('learningTools', learningToolNode)
   .addEdge('__start__', 'frontDeskSupport')
   .addEdge('marketingTools', 'marketingSupport')
-  .addEdge('learningSupport', '__end__') // need to removed
+  .addEdge('learningTools', 'learningSupport')
   .addConditionalEdges('frontDeskSupport', handleNextFlow, {
     marketingSupport: 'marketingSupport',
     learningSupport: 'learningSupport',
@@ -147,6 +181,10 @@ const graph = new StateGraph(StateAnnotation)
   })
   .addConditionalEdges('marketingSupport', isMarketingTool, {
     marketingTools: 'marketingTools',
+    __end__: END,
+  })
+  .addConditionalEdges('learningSupport', isLearningTool, {
+    learningTools: 'learningTools',
     __end__: END,
   });
 
@@ -157,7 +195,7 @@ export const main = async () => {
     messages: [
       {
         role: 'user',
-        content: 'Is there any discount for course?',
+        content: 'what will be cover in full stack course?',
       },
     ],
   });
