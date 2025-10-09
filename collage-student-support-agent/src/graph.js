@@ -1,4 +1,5 @@
-import { END, StateGraph } from '@langchain/langgraph';
+import readline from 'node:readline/promises';
+import { END, MemorySaver, StateGraph } from '@langchain/langgraph';
 import { model } from './model.js';
 import { StateAnnotation } from './state.js';
 import { ToolNode } from '@langchain/langgraph/prebuilt';
@@ -80,6 +81,8 @@ Otherwise, respond only if the word is "RESPOND".
 };
 
 export const marketingSupport = async (state) => {
+  console.log('Handling by marketing support team.....');
+
   const llmWithTools = model.bindTools(marketingTools);
 
   const SYSTEM_PROMPT = `You are part of the marketing team at ed tech  company platform.
@@ -188,21 +191,36 @@ const graph = new StateGraph(StateAnnotation)
     __end__: END,
   });
 
-const app = graph.compile();
+const app = graph.compile({ checkpointer: new MemorySaver() });
 
 export const main = async () => {
-  const stream = await app.stream({
-    messages: [
-      {
-        role: 'user',
-        content: 'what will be cover in full stack course?',
-      },
-    ],
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
   });
 
-  for await (const value of stream) {
-    console.log('***** STEP START *******');
-    console.log(value);
-    console.log('***** STEP END *******');
+  while (true) {
+    const query = await rl.question('User: ');
+
+    if (query === 'bye') break;
+
+    const state = await app.invoke(
+      {
+        messages: [
+          {
+            role: 'user',
+            content: query,
+          },
+        ],
+      },
+      { configurable: { thread_id: '1' } } // to add id dynamic
+    );
+
+    console.log(
+      'Assistant: ',
+      state.messages[state.messages.length - 1].content
+    );
   }
+
+  rl.close();
 };
