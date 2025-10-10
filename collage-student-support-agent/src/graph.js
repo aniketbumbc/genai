@@ -82,9 +82,7 @@ Otherwise, respond only if the word is "RESPOND".
 
 export const marketingSupport = async (state) => {
   console.log('Handling by marketing support team.....');
-
   const llmWithTools = model.bindTools(marketingTools);
-
   const SYSTEM_PROMPT = `You are part of the marketing team at ed tech  company platform.
     The company builds that helps software developers excel their careers to practical web development and generative AI courses.
    You specialise in handling questions about promo codes, discount offers, and special campaigns.
