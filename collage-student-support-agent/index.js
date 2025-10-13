@@ -1,4 +1,3 @@
 import { main } from './src/graph.js';
-
-console.log('Welcome to collage support agent.');
+console.log('Welcome To Collage Support Agent.');
 main();

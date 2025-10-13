@@ -4,7 +4,7 @@ import { OpenAIEmbeddings } from '@langchain/openai';
 import { PineconeStore } from '@langchain/pinecone';
 import { Pinecone as PineconeClient } from '@pinecone-database/pinecone';
 import dotenv from 'dotenv';
-dotenv.config(); // Load .env variables
+dotenv.config();
 
 const embeddings = new OpenAIEmbeddings({
   model: 'text-embedding-3-small',
