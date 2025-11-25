@@ -2,7 +2,7 @@ import { START, StateGraph } from '@langchain/langgraph';
 import { LinkedinState } from './state';
 
 const writer = async (state) => {
-  //call llm
+  //call llm for writer function
 
   const SYSTEM_PROMPT = '';
 
