@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import { ChatOpenAI } from '@langchain/openai';
 
+/** to get env variable */
 dotenv.config();
 
 export const model = new ChatOpenAI({
