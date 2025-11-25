@@ -2,13 +2,15 @@ import { START, StateGraph } from '@langchain/langgraph';
 import { LinkedinState } from './state';
 
 const writer = async (state) => {
+  //call llm
+
+  const SYSTEM_PROMPT = '';
+
   return state;
 };
-
 const critique = async (state) => {
   return state;
 };
-
 const shouldContinue = (state) => {};
 
 export const graph = new StateGraph(LinkedinState)
