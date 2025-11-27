@@ -7,7 +7,7 @@ import { ChatOpenAI } from '@langchain/openai';
  */
 dotenv.config();
 
-export const model = new ChatOpenAI({
+export const modelWriter = new ChatOpenAI({
   model: 'gpt-4o',
   temperature: 0,
   apiKey: process.env.OPENAI_API_KEY,
