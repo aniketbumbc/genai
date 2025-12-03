@@ -1,7 +1,7 @@
-import { START, StateGraph } from '@langchain/langgraph';
-import { modelWriter } from './model';
+import { END, START, StateGraph } from '@langchain/langgraph';
+import { modelWriter } from './model.js';
 import { SystemMessage, HumanMessage } from '@langchain/core/messages';
-import { LinkedinState } from './state';
+import { LinkedinState } from './state.js';
 
 const writer = async (state) => {
   const SYSTEM_PROMPT = `You are a technical writer with 3 years of professional software development experience. 
@@ -27,8 +27,12 @@ const writer = async (state) => {
   return { messages: [writerResponse] };
 };
 const critique = async (state) => {
-  const SYSTEM_PROMPT = `You are a tough LinkedIn editor for beginner devs. 
-  priority: remove buzzword clichés, keep it clear, concise, specific, and relatable. 
+  console.log('criticResponse');
+  const SYSTEM_PROMPT = `You are a critique LinkedIn reviewer. You are task is to give feedback previous generated post by 
+  AI agent.
+
+  priority: remove buzzword clichés, keep it clear, concise, specific, and relatable.
+
   Check against: 
   1. Strong hook in one to two lines, 
   2. Beginner-friendly clarity, explain the jargons with analogy or example, 
@@ -39,27 +43,8 @@ const critique = async (state) => {
   
  Output format: no score, no questions, no meta. 
  
- Start with Revise now. Apply all changes below. Output only revised post text. 
-
- Here is a clean template you can use to give instructions for fixing an AI-generated paragraph, followed by bullet-point edit instructions:
-
----
-
-**Instructions to Fix Paragraph from AI**
-
-Improve the paragraph for clarity, conciseness, technical accuracy, and professional tone. Remove filler, correct grammar, and ensure the explanation is precise and useful.
-
-**Direct Edit Instructions (Bullet Points)**
-
-* Remove redundant phrases and simplify sentence structure.
-* Replace vague terms with specific technical terminology.
-* Fix grammar, spelling, and punctuation errors.
-* Make explanations direct and action-focused.
-* Remove unnecessary adjectives and filler words.
-* Ensure all statements are technically correct and consistent.
-* Improve logical flow between sentences.
-* Use active voice where possible.
-* Keep the final paragraph concise and professional.
+ Start with:
+ "Revise now. Apply all changes below. Output only revised post text." 
 `;
 
   const criticResponse = await modelWriter.invoke([
@@ -67,13 +52,31 @@ Improve the paragraph for clarity, conciseness, technical accuracy, and professi
     ...state.messages,
   ]);
 
-  return { messages: new HumanMessage(criticResponse?.content) };
+  const currentRevision = state.revisions ?? 0;
+
+  return {
+    messages: [new HumanMessage(criticResponse.content)],
+    revisions: currentRevision + 1,
+  };
 };
-const shouldContinue = (state) => {};
+
+const shouldContinue = (state) => {
+  // Fixed: Access state.revisions directly
+  console.log('shouldContinue', state.revisions);
+
+  if (state.revisions >= 2) {
+    return END;
+  }
+
+  return 'critique';
+};
 
 export const graph = new StateGraph(LinkedinState)
   .addNode('writer', writer)
   .addNode('critique', critique)
   .addEdge(START, 'writer')
   .addEdge('critique', 'writer')
-  .addConditionalEdges('writer', shouldContinue);
+  .addConditionalEdges('writer', shouldContinue, {
+    [END]: END,
+    critique: 'critique',
+  });
