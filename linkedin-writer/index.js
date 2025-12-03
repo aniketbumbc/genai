@@ -1,18 +1,29 @@
+import readline from 'node:readline/promises';
 import { HumanMessage } from '@langchain/core/messages';
 import { graph } from './src/graph.js';
 
 async function main() {
-  const app = graph.compile();
-  const result = await app.invoke({
-    messages: [new HumanMessage('Write a post on react js')],
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
   });
 
-  console.log(
-    'Generated Post: ',
-    result.messages[result.messages.length - 1].content
-  );
+  const app = graph.compile();
+  let result;
+  while (true) {
+    const query = await rl.question('What you want to write?\n');
+    if (query === 'bye') break;
 
-  // console.log(result);
+    result = await app.invoke({
+      messages: [new HumanMessage(query)],
+    });
+    console.log(
+      'Generated Post: ',
+      result.messages[result.messages.length - 1].content
+    );
+  }
+
+  rl.close();
 }
 
 main();

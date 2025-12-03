@@ -28,7 +28,7 @@ const writer = async (state) => {
 };
 const critique = async (state) => {
   console.log('criticResponse');
-  const SYSTEM_PROMPT = `You are a critique LinkedIn reviewer. You are task is to give feedback previous generated post by 
+  const SYSTEM_PROMPT = `You are a critique for LinkedIn post. You are task is to give feedback previous generated post by 
   AI agent.
 
   priority: remove buzzword clichés, keep it clear, concise, specific, and relatable.
@@ -44,12 +44,17 @@ const critique = async (state) => {
  Output format: no score, no questions, no meta. 
  
  Start with:
- "Revise now. Apply all changes below. Output only revised post text." 
+ "Revise now. Apply all changes below. Output only revised post text. Do Not write post again. Do not repeat text.
+ only return the fixes" 
 `;
+
+  const lastMessages = [...state.messages]
+    .reverse()
+    .find((m) => m.getType() === 'ai');
 
   const criticResponse = await modelWriter.invoke([
     new SystemMessage(SYSTEM_PROMPT),
-    ...state.messages,
+    lastMessages,
   ]);
 
   const currentRevision = state.revisions ?? 0;
@@ -61,9 +66,6 @@ const critique = async (state) => {
 };
 
 const shouldContinue = (state) => {
-  // Fixed: Access state.revisions directly
-  console.log('shouldContinue', state.revisions);
-
   if (state.revisions >= 2) {
     return END;
   }
