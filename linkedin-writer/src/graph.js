@@ -2,10 +2,7 @@ import { START, StateGraph } from '@langchain/langgraph';
 import { LinkedinState } from './state';
 
 const writer = async (state) => {
-  //call llm for writer function
-
-  const SYSTEM_PROMPT = '';
-
+  // need to work on
   return state;
 };
 const critique = async (state) => {
