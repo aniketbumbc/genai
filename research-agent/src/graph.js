@@ -32,6 +32,7 @@ async function responser(state) {
 
     return{
       messages: [new AIMessage(response)],
+      iterationCount: 0
     }
   }
 
@@ -40,9 +41,6 @@ async function responser(state) {
   const revisioner = async (state) => {
 
     const current_dateTime = new Date().toLocaleDateString('sv-SE');
-
-
-
     const SYSTEM_PROMPT = `
     You are expert researcher agent. Current date and time is ${current_dateTime}.
     Your task is to revise the answer based on the search results and the original question.
@@ -88,11 +86,32 @@ async function responser(state) {
 
    return{
      messages: [new AIMessage(JSON.stringify(responseRevisioner, null, 2))],
+     iterationCount: state.iterationCount + 1,
    }
 
+  }
+
+
+  const shouldContinue = (state) => {
+    const MAX_ITERATIONS = 2;
+    if (state.iterationCount >= MAX_ITERATIONS) {
+      return END;
+    }
+    return 'revisioner';
   }
 
 
   const workFlow = new StateGraph(graphState).addNode('responser', responser).
   addNode('searchExecutor', searchExecutor).
   addNode('revisioner', revisioner)
+  .addEdge(START, 'responser')
+  .addEdge('responser', 'searchExecutor')
+  .addEdge('searchExecutor', 'revisioner')
+ .addConditionalEdges('revisioner', shouldContinue, {  
+    [END]: END,
+    searchExecutor: 'searchExecutor',
+  });
+
+  const app = workFlow.compile({ checkpointer: new MemorySaver() });
+
+  return app;
