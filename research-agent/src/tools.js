@@ -1,5 +1,6 @@
 import { HumanMessage } from '@langchain/core/messages';
 import { TavilySearch } from '@langchain/tavily';
+import dotenv from 'dotenv';
 
 
 dotenv.config();
@@ -13,8 +14,18 @@ const tavilySearch = new TavilySearch({
 export const searchExecutor = async (state) => {
 
     const lastMessage = state.messages[state.messages.length - 1];
-    const parseMessage = JSON.parse(lastMessage.content);
-    const searchResults = await tavilySearch.batch(parseMessage.searchQueries.map(query => ({query})));
+    
+    // Handle both cases: content might be an object or a JSON string
+    let parseMessage;
+    if (typeof lastMessage.content === 'string') {
+        parseMessage = JSON.parse(lastMessage.content);
+    } else {
+        parseMessage = lastMessage.content;
+    }
+
+    console.log("parseMessage:", parseMessage);
+    
+    const searchResults = await tavilySearch.batch(parseMessage?.searchQueries?.map(query => ({query})));
 
     const cleanResult = [];
 

@@ -101,7 +101,7 @@ async function responser(state) {
   }
 
 
-  const workFlow = new StateGraph(graphState).addNode('responser', responser).
+  export const workFlow = new StateGraph(graphState).addNode('responser', responser).
   addNode('searchExecutor', searchExecutor).
   addNode('revisioner', revisioner)
   .addEdge(START, 'responser')
@@ -112,6 +112,6 @@ async function responser(state) {
     searchExecutor: 'searchExecutor',
   });
 
-  const app = workFlow.compile({ checkpointer: new MemorySaver() });
+  const app = workFlow.compile();
 
-  return app;
+  export default app;

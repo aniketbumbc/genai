@@ -1,0 +1,13 @@
+{
+  "name": "genai",
+  "version": "1.0.0",
+  "description": "Continuous mouse movement utility",
+  "main": "mousemove.js",
+  "scripts": {
+    "start": "node mousemove.js"
+  },
+  "dependencies": {
+    "@nut-tree/nut-js": "^4.1.0"
+  }
+}
+
