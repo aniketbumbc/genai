@@ -31,20 +31,67 @@ async function responser(state) {
     ]);
 
     return{
-      messages: [new AIMessage(response)],
+      messages: [new AIMessage(JSON.stringify(response))],
       iterationCount: 0
     }
   }
 
 
 
+  // Helper function to extract search results with URLs
+  const extractSearchResults = (messages) => {
+    const searchResults = [];
+    for (const message of messages) {
+      let content;
+      if (typeof message.content === 'string') {
+        try {
+          content = JSON.parse(message.content);
+        } catch (e) {
+          continue;
+        }
+      } else {
+        content = message.content;
+      }
+      
+      if (content && typeof content === 'object' && content.searchHumanResults) {
+        const results = Array.isArray(content.searchHumanResults) ? content.searchHumanResults : [];
+        for (const result of results) {
+          if (result.result_url) {
+            searchResults.push({
+              url: result.result_url,
+              content: result.result || '',
+              query: result.query || ''
+            });
+          }
+        }
+      }
+    }
+    return searchResults;
+  }
+
   const revisioner = async (state) => {
 
     const current_dateTime = new Date().toLocaleDateString('sv-SE');
+    
+    // Extract search results with URLs
+    const searchResults = extractSearchResults(state.messages);
+    
+    // Format search results for the prompt
+    let searchResultsText = '';
+    if (searchResults.length > 0) {
+      searchResultsText = '\n\nAVAILABLE SEARCH RESULTS WITH URLs:\n';
+      searchResults.forEach((result, index) => {
+        searchResultsText += `[${index + 1}] URL: ${result.url}\n`;
+        searchResultsText += `    Query: ${result.query}\n`;
+        searchResultsText += `    Content: ${result.content.substring(0, 200)}...\n\n`;
+      });
+      searchResultsText += 'YOU MUST USE THESE EXACT URLs IN YOUR REFERENCES SECTION.\n';
+    }
+    
     const SYSTEM_PROMPT = `
     You are expert researcher agent. Current date and time is ${current_dateTime}.
     Your task is to revise the answer based on the search results and the original question.
-
+    ${searchResultsText}
     CRITICAL INSTRUCTIONS:
     1. Your answer should be in the following format:
 
@@ -59,7 +106,9 @@ async function responser(state) {
      1. write your main answer ~250 words using information from search results and the original question.
      2. Use inline citations like [1] [2] [3] .. to cite the sources.
      3. Stricly end with "References" section and given citations [1],[2],[3].
-     4. extract actual url from the search results and provide it in the references.
+     4. MANDATORY: Use the EXACT URLs provided in the "AVAILABLE SEARCH RESULTS WITH URLs" section above. 
+        Each URL should be numbered [1], [2], [3], etc. in the order they appear.
+        DO NOT make up URLs. ONLY use the URLs from the search results provided above.
      5. use previsous critic and search results to improve the answer.
      6. Recommned maximum 2 search queries to improve the answer.
  
@@ -92,12 +141,59 @@ async function responser(state) {
   }
 
 
+  // Helper function to extract search queries from message
+  const extractSearchQueries = (message) => {
+    let parseMessage;
+    if (typeof message.content === 'string') {
+        try {
+            parseMessage = JSON.parse(message.content);
+        } catch (e) {
+            parseMessage = message.content;
+        }
+    } else {
+        parseMessage = message.content;
+    }
+    
+    let searchQueries = [];
+    if (parseMessage && typeof parseMessage === 'object' && !Array.isArray(parseMessage)) {
+        searchQueries = parseMessage.searchQueries || [];
+    } else if (Array.isArray(parseMessage)) {
+        searchQueries = parseMessage;
+    }
+    
+    return Array.isArray(searchQueries) ? searchQueries : [];
+  }
+
+  // Route from responser to searchExecutor or END
+  const routeFromResponser = (state) => {
+    const lastMessage = state.messages[state.messages.length - 1];
+    const searchQueries = extractSearchQueries(lastMessage);
+    
+    // If no search queries, end the workflow
+    if (searchQueries.length === 0) {
+      return END;
+    }
+    
+    return 'searchExecutor';
+  }
+
+  // Route from revisioner to searchExecutor or END
   const shouldContinue = (state) => {
     const MAX_ITERATIONS = 2;
     if (state.iterationCount >= MAX_ITERATIONS) {
       return END;
     }
-    return 'revisioner';
+    
+    // Check if we have search queries to continue
+    const lastMessage = state.messages[state.messages.length - 1];
+    const searchQueries = extractSearchQueries(lastMessage);
+    
+    // If no search queries, end the workflow
+    if (searchQueries.length === 0) {
+      return END;
+    }
+    
+    return 'searchExecutor';
   }
 
 
@@ -105,7 +201,10 @@ async function responser(state) {
   addNode('searchExecutor', searchExecutor).
   addNode('revisioner', revisioner)
   .addEdge(START, 'responser')
-  .addEdge('responser', 'searchExecutor')
+  .addConditionalEdges('responser', routeFromResponser, {
+    searchExecutor: 'searchExecutor',
+    [END]: END,
+  })
   .addEdge('searchExecutor', 'revisioner')
  .addConditionalEdges('revisioner', shouldContinue, {  
     [END]: END,

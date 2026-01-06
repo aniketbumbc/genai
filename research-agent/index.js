@@ -16,7 +16,7 @@ const main = async () => {
 
   while (true) {
     const query = await rl.question('User: ');
-    if (query === '/bye') break;
+    if (query === 'bye') break;
 
 
   console.log('\n🤔 thinking...');
@@ -25,8 +25,20 @@ const main = async () => {
   console.log("=".repeat(100));
   console.log("Final Answer: ");
   console.log("=".repeat(100));
-  const lastMessage = result.messages[result.messages.length - 1].content;
-  console.log(JSON.stringify(lastMessage.answer, null, 2));
+  
+  // Parse the last message content to extract the answer field
+  const lastMessage = result.messages[result.messages.length - 1];
+  let answerContent;
+  
+  try {
+    const parsedContent = JSON.parse(lastMessage.content);
+    answerContent = parsedContent.answer || lastMessage.content;
+  } catch (e) {
+    // If parsing fails, use content as-is
+    answerContent = lastMessage.content;
+  }
+  
+  console.log(answerContent);
 }
 rl.close();
 };
