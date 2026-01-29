@@ -1,0 +1,19 @@
+{
+  "name": "supervisor-multiagent",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "@langchain/openai": "^1.2.3",
+    "dotenv": "^17.2.3",
+    "langchain": "^1.2.15",
+    "zod": "^4.3.6"
+  }
+}
