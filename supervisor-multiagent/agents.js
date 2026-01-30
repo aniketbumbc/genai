@@ -1,12 +1,12 @@
+import { sendEmail, createCalendarEvent, getContact,getAvailableTimeSlots } from './base-tools.js';
 import { EMAIL_AGENT_PROMPT, CALENDAR_AGENT_PROMPT, CONTACT_AGENT_PROMPT } from './constant-prompt.js';
 import { createAgent } from "langchain";
 import { ChatOpenAI } from '@langchain/openai';
-import { sendEmail, createCalendarEvent, getContact,getAvailableTimeSlots } from './tools.js';
 
 
 
 
-const model = new ChatOpenAI({
+export const model = new ChatOpenAI({
     model: "gpt-5-mini-2025-08-07",
     temperature: 1,
     apiKey: process.env.OPENAI_API_KEY,
