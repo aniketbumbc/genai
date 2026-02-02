@@ -1,6 +1,7 @@
 import { createAgent } from "langchain";
 import { scheduleEvent, manageEmail, constactSearch } from "./base-tools.js";
 import { model } from "./agents.js";
+import { MemorySaver } from "@langchain/langgraph";
 
 
 const SUPERVISOR_PROMPT = `
@@ -19,4 +20,5 @@ export const supervisorAgent = createAgent({
   model: model,
   tools: [scheduleEvent, manageEmail, constactSearch],
   systemPrompt: SUPERVISOR_PROMPT,
+  checkpointSaver: new MemorySaver(),
 });
