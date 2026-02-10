@@ -66,54 +66,44 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
+const interrupts = [];
+
 while (true) {
   const query = await rl.question('Enter your query: ');
   if (query === 'bye') break;
-  const stream = await supervisorAgent.stream({
-    messages: [{ role: "user", content: query }],
-    config: config
-  });
-  for await (const step of stream) {
-    for (const update of Object.values(step)) {
-      if (update && typeof update === "object" && "messages" in update) {
-        for (const message of update.messages) {
-          console.log(message.toFormattedString());
-        }
-      }
-    }
-  }
-}
 
-
-
-
-
-rl.question('Enter your query: ', async (query) => {
-  const stream = await supervisorAgent.stream({
-    messages: [{ role: "user", content: query }]
-  });
-});
-
-const query = ` Schedule a team meeting for tomorrow at 9am for 15 minutes at town hall. Include sales and marketing team members. about the new product launch. `
-
-
-
-const stream = await supervisorAgent.stream({
+const result = await supervisorAgent.invoke({
   messages: [{ role: "user", content: query }]
-});
+}, config);
 
-for await (const step of stream) {
-  for (const update of Object.values(step)) {
-    if (update && typeof update === "object" && "messages" in update) {
-      for (const message of update.messages) {
-        console.log(message.toFormattedString());
-      }
-    }
-  }
+let output_format = '';
+
+if(result?.__interrupt__){
+  interrupts.push(result?.__interrupt__[0]);
+  // show to the approval message
+
+output_format += result?.__interrupt__[0].value.actionRequests[0].description + '\n\n';
+output_format += "To: " + result?.__interrupt__[0].value.actionRequests[0].args.to + '\n';
+output_format += "Subject: " + result?.__interrupt__[0].value.actionRequests[0].args.subject + '\n';
+output_format += "Body: " + result?.__interrupt__[0].value.actionRequests[0].args.body + '\n';
+output_format += '\n' + 'Choose the action to take:' + '\n';
+output_format += '1. approve: Approve the email to be sent.' + '\n';
+output_format += '2. edit: Edit the email and send it again.' + '\n';
+output_format += '3. reject: Reject the email and do not send it.' + '\n';
+
+console.log(output_format);
+
+
+}else{
+  console.log("result: ", (result.messages[result.messages.length - 1].content));
 }
 
-}
+//console.log("result: ", JSON.stringify(result?.__interrupt__));
 
+
+}
+rl.close();
+}
 main();
 
 

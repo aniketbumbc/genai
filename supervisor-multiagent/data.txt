@@ -1,0 +1,38 @@
+can you send email to John from design team. ask about update from last meeting. directly send emila do not scheduel event or meeting.
+
+
+
+
+ interruptOn: {
+        send_email: {
+          allowedDecisions: ["approve", "edit", "reject"],
+          defaultDecision: false,
+          description: "Email approval request. Pending for approval.",
+        }
+      }'
+
+
+       interruptOn: {
+        send_email: {
+          allowedDecisions: ["approve", "edit", "reject"],
+          defaultDecision: false,
+          description: "Email approval request. Pending for approval.",
+        }
+      }
+
+
+
+      export const emailAgent = createAgent({
+  model: model,
+  tools: [sendEmail],
+  systemPrompt: EMAIL_AGENT_PROMPT,
+  checkpointer: new MemorySaver(),
+  middleware: [
+    humanInTheLoopMiddleware({
+      interruptOn: {
+        send_email: true,
+        defaultDecision: false,
+      }
+    })
+  ]
+});
