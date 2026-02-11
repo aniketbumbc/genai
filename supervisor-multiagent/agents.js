@@ -38,7 +38,7 @@ export const calendarAgent = createAgent({
   model: model,
   tools: [createCalendarEvent, getAvailableTimeSlots],
   systemPrompt: CALENDAR_AGENT_PROMPT,
-  checkpointSaver: new MemorySaver(),
+  checkpointer: new MemorySaver(),
 });
 
 

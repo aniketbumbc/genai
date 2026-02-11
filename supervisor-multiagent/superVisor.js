@@ -1,8 +1,7 @@
-import { createAgent } from "langchain";
-import { scheduleEvent, manageEmail, constactSearch } from "./base-tools.js";
-import { model } from "./agents.js";
-import { MemorySaver } from "@langchain/langgraph";
-
+import { createAgent } from 'langchain';
+import { scheduleEvent, manageEmail, constactSearch } from './base-tools.js';
+import { model } from './agents.js';
+import { MemorySaver } from '@langchain/langgraph';
 
 const SUPERVISOR_PROMPT = `
 You are a helpful personal assistant.
@@ -14,11 +13,15 @@ The flow should be like this:
 To send email and notificaiton you can use appropriate tools. 
 Example: to find the contact information of the person who is in the team, you can use the contact_search tool and to send email you can use the send_email tool.
 Important: When request involves multiple actions, you should use multiple tools in sequence. Make sure to use the tools in the correct order.
+Important: If the request is not clear, you should ask the user for clarification and I reject email request then do not show and draft email.
+
+
+
 `.trim();
 
 export const supervisorAgent = createAgent({
   model: model,
   tools: [scheduleEvent, manageEmail, constactSearch],
   systemPrompt: SUPERVISOR_PROMPT,
-  checkpointSaver: new MemorySaver(),
+  checkpointer: new MemorySaver(),
 });
