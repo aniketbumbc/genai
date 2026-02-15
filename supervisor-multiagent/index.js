@@ -82,20 +82,25 @@ async function main() {
                 : 'invalid'),
       );
       const interuptValue = interrupts[0];
-      resume[`${interuptValue.id}`] = {
-        decisions: [
-          {
-            type:
-              query === '1'
-                ? 'approve'
-                : query === '2'
-                  ? 'edit'
-                  : query === '3'
-                    ? 'reject'
-                    : 'invalid',
-          },
-        ],
-      };
+
+      if (query === '2') {
+        console.log('edit the email and send it again.');
+      } else {
+        resume[`${interuptValue.id}`] = {
+          decisions: [
+            {
+              type:
+                query === '1'
+                  ? 'approve'
+                  : query === '2'
+                    ? 'edit'
+                    : query === '3'
+                      ? 'reject'
+                      : 'invalid',
+            },
+          ],
+        };
+      }
     }
 
     console.log('resume: ', JSON.stringify(resume));
