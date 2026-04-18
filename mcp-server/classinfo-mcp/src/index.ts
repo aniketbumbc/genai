@@ -3,6 +3,8 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 //import { json } from 'node:stream/consumers';
 import { z } from 'zod';
 
+import { GetPromptResult } from '@modelcontextprotocol/sdk/types.js';
+
 // Create server instance
 const server = new McpServer({
   name: 'classinfo',
@@ -81,6 +83,30 @@ const students = [
     city: 'Miami',
   },
 ];
+
+server.registerPrompt(
+  'get_greeting',
+  {
+    title: 'Get a greeting',
+    description: 'A simple greeting prompt template',
+    argsSchema: {
+      name: z.string().describe('The name of the person to greet'),
+    },
+  },
+  async ({ name }): Promise<GetPromptResult> => {
+    return {
+      messages: [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: `Hello, ${name}! welcome to the class for model context protocol`,
+          },
+        },
+      ],
+    };
+  },
+);
 
 // @ts-ignore
 server.registerTool(
