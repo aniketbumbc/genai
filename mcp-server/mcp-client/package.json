@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "build": "tsc && chmod 755 dist/index.js",
     "dev": "pnpm run build && node dist/index.js",
