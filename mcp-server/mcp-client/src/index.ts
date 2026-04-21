@@ -1,12 +1,12 @@
 import { OpenAI } from 'openai';
-import { Tool } from 'openai/resources/responses/responses.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { FunctionTool } from 'openai/resources/beta.js';
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import readline from 'readline/promises';
 import dotenv from 'dotenv';
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions.mjs';
+import { Transport } from '@modelcontextprotocol/sdk/shared/transport';
 dotenv.config();
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -31,45 +31,110 @@ class MCPClient {
   }
   // methods will go here
 
-  async connectToServer(serverScriptPath: string) {
+  // async connectToServer(
+  //   serverScriptPath: string,
+  //   serverType: 'local' | 'remote',
+  // ) {
+  //   if (serverType === 'local') {
+  //     const isJs = serverScriptPath.endsWith('.js');
+  //     const isPy = serverScriptPath.endsWith('.py');
+  //     if (!isJs && !isPy) {
+  //       throw new Error('Server script must be a .js or .py file');
+  //     }
+  //     const command = isPy
+  //       ? process.platform === 'win32'
+  //         ? 'python'
+  //         : 'python3'
+  //       : process.execPath;
+
+  //     this.transport = new StdioClientTransport({
+  //       command,
+  //       args: [serverScriptPath],
+  //     });
+
+  //     console.log(
+  //       'Connected to server with tools:',
+  //       this.tools.map(({ function: { name } }) => name),
+  //     );
+  //   } else if (serverType === 'remote') {
+  //     //streamable http transport
+  //     console.log('Connecting to remote server: ', serverScriptPath);
+  //     const url = new URL(serverScriptPath);
+  //     this.transport = new StreamableHTTPClientTransport(url);
+  //   }
+
+  //   try {
+  //     await this.mcp.connect(this.transport as Transport);
+  //     console.log(
+  //       'Connected to server with tools:',
+  //       this.tools.map(({ function: { name } }) => name),
+  //     );
+
+  //     const toolsResult = await this.mcp.listTools();
+
+  //     this.tools = toolsResult.tools.map((tool) => {
+  //       return {
+  //         type: 'function',
+  //         function: {
+  //           name: tool.name,
+  //           description: tool.description,
+  //           parameters: tool.inputSchema,
+  //         },
+  //       };
+  //     });
+  //   } catch (e) {
+  //     console.log('Failed to connect to MCP server: ', e);
+  //     throw e;
+  //   }
+  // }
+  async connectToServer(
+    serverScriptPath: string,
+    serverType: 'local' | 'remote',
+  ) {
     try {
-      const isJs = serverScriptPath.endsWith('.js');
-      const isPy = serverScriptPath.endsWith('.py');
-      if (!isJs && !isPy) {
-        throw new Error('Server script must be a .js or .py file');
+      if (serverType === 'local') {
+        const isJs = serverScriptPath.endsWith('.js');
+        const isPy = serverScriptPath.endsWith('.py');
+
+        if (!isJs && !isPy) {
+          throw new Error('Server script must be a .js or .py file');
+        }
+
+        const command = isPy
+          ? process.platform === 'win32'
+            ? 'python'
+            : 'python3'
+          : process.execPath;
+
+        this.transport = new StdioClientTransport({
+          command,
+          args: [serverScriptPath],
+        });
+      } else {
+        console.log('Connecting to remote server:', serverScriptPath);
+        const url = new URL(serverScriptPath);
+
+        this.transport = new StreamableHTTPClientTransport(url);
       }
-      const command = isPy
-        ? process.platform === 'win32'
-          ? 'python'
-          : 'python3'
-        : process.execPath;
 
-      this.transport = new StdioClientTransport({
-        command,
-        args: [serverScriptPath],
-      });
-
-      await this.mcp.connect(this.transport);
-
+      await this.mcp.connect(this.transport as Transport);
       const toolsResult = await this.mcp.listTools();
 
-      console.error('toolsResult', toolsResult);
-      this.tools = toolsResult.tools.map((tool) => {
-        return {
-          type: 'function',
-          function: {
-            name: tool.name,
-            description: tool.description,
-            parameters: tool.inputSchema,
-          },
-        };
-      });
+      this.tools = toolsResult.tools.map((tool) => ({
+        type: 'function',
+        function: {
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.inputSchema,
+        },
+      }));
+
       console.log(
         'Connected to server with tools:',
-        this.tools.map(({ function: { name } }) => name),
+        this.tools.map((t) => t.function.name),
       );
     } catch (e) {
-      console.log('Failed to connect to MCP server: ', e);
+      console.log('Failed to connect to MCP server:', e);
       throw e;
     }
   }
@@ -166,7 +231,7 @@ class MCPClient {
         }
 
         const response = await this.processQuery(message);
-        //console.log('\n' + response);
+        console.log('\n' + response);
       }
     } finally {
       rl.close();
@@ -188,7 +253,7 @@ async function main() {
   const mcpClient = new MCPClient();
 
   try {
-    await mcpClient.connectToServer(process.argv[2]);
+    await mcpClient.connectToServer(process.argv[2], 'remote');
     await mcpClient.chatLoop();
   } catch (e) {
     console.error('Error:', e);
