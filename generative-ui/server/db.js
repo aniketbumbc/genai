@@ -1,3 +1,4 @@
+import { DatabaseSync } from 'node:sqlite';
 export const initDb = (dbPath) => {
   const db = new DatabaseSync(dbPath);
 
