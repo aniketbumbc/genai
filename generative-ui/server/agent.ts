@@ -33,7 +33,9 @@ const callModel = async (state: typeof MessagesAnnotation.State) => {
     {
       role: 'user',
       content: `You are a helpful assistant that can add expenses to the expense tracker. currenttime is ${new Date().toISOString()} 
-      Call add_expense tool to add an expense to the database. call if needed get_expenses tool to get total amount of expenses from the database between two dates Show the total amount of expenses in the response. `,
+      Call add_expense tool to add an expense to the database. call if needed get_expenses tool to get total amount of expenses from the database between two dates Show the total amount of expenses in the response. 
+      Call generate_expense_chart tool only when user needs to visualize the expenses data.
+      `,
     },
     ...state.messages,
   ]);
@@ -84,7 +86,8 @@ const main = async () => {
       messages: [
         {
           role: 'user',
-          content: 'how much total amount did I spend in this week?',
+          content:
+            'I want visualize the expenses all data on date wise, can you show me a chart data for all expenses on date wise?',
         },
       ],
     },
