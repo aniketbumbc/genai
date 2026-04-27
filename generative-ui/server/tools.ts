@@ -77,7 +77,6 @@ export const initTools = (db: DatabaseSync) => {
   const generateExpenseChart = tool(
     ({ fromDate, toDate, groupByData }) => {
       console.log(`generateExpenseChart`);
-
       console.log(`by grouping by ${groupByData}`);
 
       let sqlGroupBy = '';
@@ -101,9 +100,17 @@ export const initTools = (db: DatabaseSync) => {
 
       const statement = `SELECT ${sqlGroupBy} as period, SUM(amount) as total FROM expenses WHERE date BETWEEN ? AND ? GROUP BY period ORDER BY period`;
       const expenses = db.prepare(statement).all(fromDate, toDate);
-      console.log('rows of expenses', expenses);
 
-      return JSON.stringify(expenses);
+      const result = expenses.map((expense) => ({
+        [groupByData]: expense.period,
+        amount: expense.total,
+      }));
+
+      return JSON.stringify({
+        type: 'chart',
+        data: result,
+        labelKey: groupByData,
+      });
     },
     {
       name: 'generate_expense_chart',

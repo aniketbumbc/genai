@@ -5,7 +5,7 @@ import { MemorySaver } from '@langchain/langgraph';
 import { initDb } from './db.js';
 import { initTools } from './tools';
 import { StateGraph } from '@langchain/langgraph';
-import { AIMessage } from '@langchain/core/messages';
+import { AIMessage, ToolMessage } from '@langchain/core/messages';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -56,7 +56,14 @@ const shouldContinue = async (state: typeof MessagesAnnotation.State) => {
 };
 
 const shouldCallModel = async (state: typeof MessagesAnnotation.State) => {
-  // need to change this when graph ui functionality is implemented
+  const messages = state.messages;
+  const lastMessage = messages[messages.length - 1] as ToolMessage;
+
+  const messageContent = JSON.parse(lastMessage.content as string);
+
+  if (messageContent.type === 'chart') {
+    return '__end__';
+  }
   return 'callModel';
 };
 
@@ -74,6 +81,7 @@ const graph = new StateGraph(MessagesAnnotation)
   })
   .addConditionalEdges('tools', shouldCallModel, {
     callModel: 'callModel',
+    __end__: '__end__',
   });
 
 const agent = graph.compile({
@@ -81,7 +89,7 @@ const agent = graph.compile({
 });
 
 const main = async () => {
-  const result = await agent.invoke(
+  const result = await agent.stream(
     {
       messages: [
         {
@@ -95,10 +103,17 @@ const main = async () => {
     {
       configurable: {
         thread_id: 'user-1',
+        streamMode: 'updates',
       },
     },
   );
-  console.log(JSON.stringify(result, null, 2));
+
+  for await (const chunk of result) {
+    console.log('chunk', chunk);
+    // const [step, content] = Object.entries(chunk)[0];
+    // console.log(`${step}: ${content}`);
+    // console.log(JSON.stringify(chunk, null, 2));
+  }
 };
 
 main();
