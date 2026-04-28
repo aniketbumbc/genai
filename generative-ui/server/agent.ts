@@ -1,5 +1,8 @@
 import { ChatOpenAI } from '@langchain/openai';
 import { MessagesAnnotation } from '@langchain/langgraph';
+
+import type { LangGraphRunnableConfig } from '@langchain/langgraph';
+
 import { ToolNode } from '@langchain/langgraph/prebuilt';
 import { MemorySaver } from '@langchain/langgraph';
 import { initDb } from './db.js';
@@ -26,8 +29,13 @@ const llm = new ChatOpenAI({
 
 const toolNode = new ToolNode(tools);
 
-const callModel = async (state: typeof MessagesAnnotation.State) => {
+const callModel = async (
+  state: typeof MessagesAnnotation.State,
+  config: LangGraphRunnableConfig,
+) => {
   const llmWithTools = llm.bindTools(tools);
+
+  config.writer?.('.....Calling LLM with tools to generate expense chart');
 
   const response = await llmWithTools.invoke([
     {
@@ -103,8 +111,8 @@ const main = async () => {
     {
       configurable: {
         thread_id: 'user-1',
-        streamMode: 'updates',
       },
+      streamMode: ['updates', 'custom'],
     },
   );
 
