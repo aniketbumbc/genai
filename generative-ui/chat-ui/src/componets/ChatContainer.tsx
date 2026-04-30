@@ -7,6 +7,7 @@ import React from 'react';
 
 export function ChatContainer() {
   const messageEndRef = useRef<HTMLDivElement>(null);
+  const [query, setQuery] = useState<string>('');
 
   const [messages, setMessages] = useState<StreamMessage[]>(
     []
@@ -18,112 +19,31 @@ export function ChatContainer() {
   //   });
   // }, [messages]);
 
+  async function submitQuery(query: string){
+    console.log("submitQuery", query);
+    await fetchEventSource('http://localhost:4100/chat', {
+      onmessage(ev) {
+          console.log(ev.data);
+      },
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query }),
+  });
+  }
 
-  useEffect(() => {
-    console.log("useEffect");
-    const eventSource = new EventSource('http://localhost:4100/chat');
-      eventSource.addEventListener('open',()=>{
-        console.log('connected to server');
-      })
-      eventSource.addEventListener('ping',(event)=>{
-        console.log("Received ping from server",event);
-      })
-
-      eventSource.addEventListener('message',(data)=>{
-        console.log("Received data from server",data);
-      })
-
-  },[])
+  // useEffect(() => {
+  //   console.log("useEffect"query);
+  //   submitQuery(query);
+  // },[])
 
 
-
-
-
-  // async function submitQuery(userInput: string) {
-  //   setMessages((prevMessages) => {
-  //     return [
-  //       ...prevMessages,
-  //       {
-  //         id: Date.now().toString(),
-  //         type: 'user',
-  //         payload: { text: userInput },
-  //       },
-  //     ];
-  //   });
-
-    // await fetchEventSource('http://localhost:4100/chat', {
-    //   onmessage(ev) {
-    //     // console.log(ev.event);
-    //     const parsedData = JSON.parse(
-    //       ev.data
-    //     ) as StreamMessage;
-
-    //     if (parsedData.type === 'ai') {
-    //       setMessages((prevMessages) => {
-    //         const lastMessage =
-    //           prevMessages[prevMessages.length - 1];
-
-    //         if (lastMessage && lastMessage.type === 'ai') {
-    //           // append to lat message
-    //           const clonedMessages = [...prevMessages];
-
-    //           clonedMessages[clonedMessages.length - 1] = {
-    //             ...lastMessage,
-    //             payload: {
-    //               text:
-    //                 lastMessage.payload.text +
-    //                 parsedData.payload.text,
-    //             },
-    //           };
-
-    //           return clonedMessages;
-    //         } else {
-    //           return [
-    //             ...prevMessages,
-    //             {
-    //               id: Date.now().toString(),
-    //               type: 'ai',
-    //               payload: parsedData.payload,
-    //             },
-    //           ];
-    //         }
-    //       });
-
-    //       // console.log(parsedData);
-    //     } else if (parsedData.type === 'toolCall:start') {
-    //       setMessages((prevMessages) => {
-    //         return [
-    //           ...prevMessages,
-    //           {
-    //             id: Date.now().toString(),
-    //             type: 'toolCall:start',
-    //             payload: parsedData.payload,
-    //           },
-    //         ];
-    //       });
-    //     } else if (parsedData.type === 'tool') {
-    //       setMessages((prevMessages) => {
-    //         return [
-    //           ...prevMessages,
-    //           {
-    //             id: Date.now().toString(),
-    //             type: 'tool',
-    //             payload: parsedData.payload,
-    //           },
-    //         ];
-    //       });
-    //     }
-    //   },
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({ query: userInput }),
-    // });
   
 
   const onSubmit = (userInput: string) => {
     console.log('user input', userInput);
+    setQuery(userInput);
     submitQuery(userInput);
   };
 

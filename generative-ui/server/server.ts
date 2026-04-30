@@ -13,8 +13,11 @@ app.get('/', (req, res) => {
 // special header
 // send data in specail format of data stream like event stream
 
-app.get('/chat', (req, res) => {
+app.post('/chat', (req, res) => {
   //const { message } = req.body;
+
+  const { query } = req.body;
+  console.log(query);
 
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
@@ -24,7 +27,7 @@ app.get('/chat', (req, res) => {
 
   setInterval(() => {
     res.write('event: ping\n');
-    res.write('data: "Happy coding"\n\n');
+    res.write(`data: "${query}"\n\n`);
   }, 1000);
 });
 
