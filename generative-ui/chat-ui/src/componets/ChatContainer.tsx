@@ -1,9 +1,46 @@
+import React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import { ChatInput } from './ChatInput';
 import { ChatMessage } from './ChatMessage';
-import type { StreamMessage } from '../type.ts';
-import React from 'react';
+import { v4 as uuidv4 } from 'uuid';
+
+type StreamMessage =
+| {
+    id: string;
+    type: 'ai';
+    payload: { text: string };
+  }
+| {
+    id: string;
+    type: 'toolCall:start';
+    payload: {
+      name: string;
+      args: Record<string, any>;
+    };
+  }
+| {
+    id: string;
+    type: 'tool';
+    payload: {
+      name: string;
+      result: Record<string, any>;
+    };
+  }
+| {
+    id: string;
+    type: 'user';
+    payload: { text: string };
+  }
+  | {
+    id: string;
+    type: 'id';
+    payload: { error: string };
+  };
+
+
+
+
 
 export function ChatContainer() {
   const messageEndRef = useRef<HTMLDivElement>(null);
@@ -20,10 +57,41 @@ export function ChatContainer() {
   // }, [messages]);
 
   async function submitQuery(query: string){
-    console.log("submitQuery", query);
+
+    setMessages([...messages, { id: uuidv4(), type: 'user', payload: { text: query } }]);
     await fetchEventSource('http://localhost:4100/chat', {
       onmessage(ev) {
-          console.log(ev.data);
+        const parsedData: StreamMessage = JSON.parse(ev.data);
+
+        if(parsedData.type === 'ai') {
+          setMessages((prev)=>{
+
+            const lastMessage = prev[prev.length - 1];
+            if(lastMessage && lastMessage.type === 'ai') {
+              const cloneMessage =  [...prev ];
+              cloneMessage[cloneMessage.length - 1] = {
+                ...lastMessage,
+                payload: {
+                  text: lastMessage.payload.text + parsedData.payload.text,
+                },
+              };
+              return cloneMessage;
+            }else{
+              return [
+                ...prev,
+                {
+                  id: uuidv4(),
+                  type: 'ai',
+                  payload: { text: parsedData.payload.text || '' },
+                },
+              ]
+            }
+          })
+        } else if(parsedData.type === 'toolCall:start') {
+          //setMessages([...messages, parsedData]);
+        } else if(parsedData.type === 'tool') {
+          //setMessages([...messages, parsedData]);
+        }
       },
       method: 'POST',
       headers: {

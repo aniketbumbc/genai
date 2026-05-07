@@ -6,6 +6,7 @@ type Props = {
   message: StreamMessage;
 };
 export function ChatMessage({ message }: Props) {
+  console.log(message);
   if (message.type === 'user') {
     return (
       <div className="flex gap-4 py-6 px-6 transition-colors">

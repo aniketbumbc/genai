@@ -92,36 +92,36 @@ const graph = new StateGraph(MessagesAnnotation)
     __end__: '__end__',
   });
 
-const agent = graph.compile({
+export const agent = graph.compile({
   checkpointer: new MemorySaver(),
 });
 
-const main = async () => {
-  const result = await agent.stream(
-    {
-      messages: [
-        {
-          role: 'user',
-          content:
-            'I want visualize the expenses all data on date wise, can you show me a chart data for all expenses on date wise?',
-        },
-      ],
-    },
+// const main = async () => {
+//   const result = await agent.stream(
+//     {
+//       messages: [
+//         {
+//           role: 'user',
+//           content:
+//             'I want visualize the expenses all data on date wise, can you show me a chart data for all expenses on date wise?',
+//         },
+//       ],
+//     },
 
-    {
-      configurable: {
-        thread_id: 'user-1',
-      },
-      streamMode: ['updates', 'custom'],
-    },
-  );
+//     {
+//       configurable: {
+//         thread_id: 'user-1',
+//       },
+//       streamMode: ['updates', 'custom'],
+//     },
+//   );
 
-  for await (const chunk of result) {
-    console.log('chunk', chunk);
-    // const [step, content] = Object.entries(chunk)[0];
-    // console.log(`${step}: ${content}`);
-    // console.log(JSON.stringify(chunk, null, 2));
-  }
-};
+//   for await (const chunk of result) {
+//     console.log('chunk', chunk);
+//     // const [step, content] = Object.entries(chunk)[0];
+//     // console.log(`${step}: ${content}`);
+//     // console.log(JSON.stringify(chunk, null, 2));
+//   }
+// };
 
-main();
+//main();
