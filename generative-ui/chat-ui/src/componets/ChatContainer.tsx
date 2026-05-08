@@ -87,9 +87,29 @@ export function ChatContainer() {
               ]
             }
           })
-        } else if(parsedData.type === 'toolCall:start') {
-          //setMessages([...messages, parsedData]);
         } else if(parsedData.type === 'tool') {
+         
+          setMessages((prev)=>{
+            return[
+              ...prev,
+              {
+                id: uuidv4(),
+                type: 'tool',
+                payload: parsedData.payload,
+              },
+            ]
+          })
+        } else if(parsedData.type === 'toolCall:start') {
+          setMessages((prev)=>{
+            return[
+              ...prev,
+              {
+                id: uuidv4(),
+                type: 'toolCall:start',
+                payload:parsedData.payload
+              },
+            ]
+          })
           //setMessages([...messages, parsedData]);
         }
       },

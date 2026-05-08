@@ -2,6 +2,7 @@ import { ChatOpenAI } from '@langchain/openai';
 import { MessagesAnnotation } from '@langchain/langgraph';
 
 import type { LangGraphRunnableConfig } from '@langchain/langgraph';
+import type { StreamMessage } from './types';
 
 import { ToolNode } from '@langchain/langgraph/prebuilt';
 import { MemorySaver } from '@langchain/langgraph';
@@ -35,8 +36,6 @@ const callModel = async (
 ) => {
   const llmWithTools = llm.bindTools(tools);
 
-  config.writer?.('.....Calling LLM with tools to generate expense chart');
-
   const response = await llmWithTools.invoke([
     {
       role: 'user',
@@ -53,11 +52,22 @@ const callModel = async (
   };
 };
 
-const shouldContinue = async (state: typeof MessagesAnnotation.State) => {
+const shouldContinue = async (
+  state: typeof MessagesAnnotation.State,
+  config: LangGraphRunnableConfig,
+) => {
   const messages = state.messages;
   const lastMessage = messages[messages.length - 1] as AIMessage;
 
   if (lastMessage.tool_calls?.length) {
+    const customMessage: StreamMessage = {
+      type: 'toolCall:start',
+      payload: {
+        name: lastMessage.tool_calls[0].name,
+        args: lastMessage.tool_calls[0].args,
+      },
+    };
+    config.writer?.(customMessage);
     return 'tools';
   }
   return '__end__';
