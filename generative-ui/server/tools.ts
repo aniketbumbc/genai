@@ -10,7 +10,6 @@ export const initTools = (db: DatabaseSync) => {
    * - title: The title of the expense
    * - amount: The amount of the expense
    */
-
   const addExpense = tool(
     ({ title, amount }) => {
       console.log(`Adding expense: ${title} - $${amount}`);
@@ -129,6 +128,5 @@ export const initTools = (db: DatabaseSync) => {
       }),
     },
   );
-
   return [addExpense, getExpenses, generateExpenseChart];
 };

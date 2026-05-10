@@ -1,9 +1,7 @@
 import { ChatOpenAI } from '@langchain/openai';
 import { MessagesAnnotation } from '@langchain/langgraph';
-
 import type { LangGraphRunnableConfig } from '@langchain/langgraph';
 import type { StreamMessage } from './types';
-
 import { ToolNode } from '@langchain/langgraph/prebuilt';
 import { MemorySaver } from '@langchain/langgraph';
 import { initDb } from './db.js';
@@ -86,7 +84,7 @@ const shouldCallModel = async (state: typeof MessagesAnnotation.State) => {
 };
 
 /**
- *  Graph Build
+ *  Graph Build Langraph
  */
 
 const graph = new StateGraph(MessagesAnnotation)
@@ -106,6 +104,7 @@ export const agent = graph.compile({
   checkpointer: new MemorySaver(),
 });
 
+// Need to move this function
 // const main = async () => {
 //   const result = await agent.stream(
 //     {
