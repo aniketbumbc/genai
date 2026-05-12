@@ -108,7 +108,6 @@ export function ChatMessage({ message }: Props) {
               2
             )}
           </div>
-
           {message.payload.name ===
             'generate_expense_chart' && (
             <ExpenseChart
@@ -116,6 +115,7 @@ export function ChatMessage({ message }: Props) {
               labelKey={message.payload.result.labelKey}
             />
           )}
+          <h1 className="text-zinc-100 text-2xl font-bold">Chart data by {message.payload.result.labelKey}</h1>
         </div>
       </div>
     );

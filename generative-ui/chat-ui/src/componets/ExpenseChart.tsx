@@ -5,32 +5,12 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from './ui/chart';
-import type { ChartConfig } from './ui/chart';
 
-// const chartData = [
-//   { month: 'January', desktop: 186, mobile: 80 },
-//   { month: 'February', desktop: 305, mobile: 200 },
-//   { month: 'March', desktop: 237, mobile: 120 },
-//   { month: 'April', desktop: 73, mobile: 190 },
-//   { month: 'May', desktop: 209, mobile: 130 },
-//   { month: 'June', desktop: 214, mobile: 140 },
-// ];
-
-// [
-//     {
-//       "date": "2025-11-25",
-//       "amount": 45000
-//     },
-//     {
-//       "date": "2025-11-26",
-//       "amount": 2000
-//     }
-//   ],
 
 const chartConfig = {
   amount: {
     label: 'Amount',
-    color: '#fff',
+    color: 'white',
   },
 } satisfies ChartConfig;
 
@@ -48,11 +28,13 @@ export function ExpenseChart({
   return (
     <ChartContainer
       config={chartConfig}
-      className="min-h-[200px] py-12 bg-zinc-900 rounded-xl my-4 p-4">
+      className="min-h-[280px] w-full max-w-md py-12 bg-zinc-900 rounded-xl my-4 p-4">
       <BarChart accessibilityLayer data={chartData}>
         <ChartTooltip
           content={<ChartTooltipContent />}
           cursor={false}
+                className="bg-white text-zinc-900 border border-zinc-200 shadow-sm"
+
         />
         <XAxis
           dataKey={labelKey}
@@ -64,8 +46,9 @@ export function ExpenseChart({
 
         <Bar
           dataKey="amount"
-          fill="var(--color-amount)"
-          radius={4}
+          fill="yellow"
+          radius={1}
+          barSize={24}
         />
       </BarChart>
     </ChartContainer>

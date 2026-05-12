@@ -50,11 +50,11 @@ export function ChatContainer() {
     []
   );
 
-  // useEffect(() => {
-  //   messageEndRef.current?.scrollIntoView({
-  //     behavior: 'smooth',
-  //   });
-  // }, [messages]);
+  useEffect(() => {
+    messageEndRef.current?.scrollIntoView({
+      behavior: 'smooth',
+    });
+  }, [messages]);
 
   async function submitQuery(query: string){
 
