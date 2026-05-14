@@ -8,12 +8,36 @@ import { LeftSidebar } from "@/components/left-sidebar";
 import ImageGenerationLoading from "@/components/image-generation";
 import { AIPromptInput } from "@/components/prompt-input";
 import { RightSidebar } from "@/components/right-sidebar";
+import { useRef, useState } from 'react';
+import { useEditorStore } from '@/store/useEditorState';
 
 export default function Home() {
-  const imageSelected = false;
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+ const { imageUrl, setImageUrl } = useEditorStore();
+  const handleSelectImage = () => {
+    fileInputRef.current?.click();
+  }
+
+  const handlImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event?.target?.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const image = reader.result as string;
+       setImageUrl(image);
+      }
+      reader.readAsDataURL(file as File);
+  }
+};
+
+
   return (
     <>
       <div className="w-full h-dvh flex flex-col overflow-hidden">
+
+        <input type="file" className='hidden' accept='image/*' ref={fileInputRef} onChange={handlImageUpload}/>
+
         <Navbar />
         <div className="flex-1 flex min-h-0 overflow-hidden">
           {/* LEFT COLUMN */}
@@ -34,7 +58,7 @@ export default function Home() {
 
               {/* MAIN EDITOR SCREEN */}
               <div className="w-full h-full flex items-center justify-center p-6 md:p-10">
-                {!imageSelected ? (
+                {!imageUrl ? (
                   <div className="text-center space-y-6 max-w-sm z-10 ">
                     <div className="w-24 h-24 bg-zinc-900/50 rounded-3xl border border-zinc-800 flex items-center justify-center mx-auto shadow-2xl shadow-yellow-900/10">
                       <Image
@@ -58,15 +82,15 @@ export default function Home() {
                       </p>
                     </div>
                     <Button
-                      onClick={() => {}}
-                      className="w-full h-11 bg-yellow-500 hover:bg-yellow-400 text-zinc-950 font-bold rounded-xl transition-all hover:scale-[1.02]"
+                      onClick={handleSelectImage}
+                      className="w-full h-11 bg-yellow-500 hover:bg-yellow-400 text-zinc-950 font-bold rounded-xl transition-all hover:scale-[1.02] cursor-pointer"
                     >
                       Select Image
                     </Button>
                   </div>
                 ) : (
                   <div className="relative w-full h-full flex items-center justify-center">
-                    IMAGE EDITOR COMPONENT
+                  <Image src={imageUrl} alt="uploaded image" width={500} height={500} className="object-contain" />
                   </div>
                 )}
               </div>
