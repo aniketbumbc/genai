@@ -170,8 +170,6 @@ const webSearch = async ({ query }) => {
 
 const universitySearch = async ({ info }) => {
   console.log('This is you query: ', info);
-
   console.log('Calling..... university Search');
-
   return 'Welcome to university we will give you update soon';
 };

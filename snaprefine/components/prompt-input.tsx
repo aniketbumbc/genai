@@ -40,6 +40,7 @@ import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { CheckIcon, GlobeIcon } from "lucide-react";
 import { useState } from "react";
+import { useEditorStore } from "@/store/useEditorState";
 
 const models = [
   {
@@ -108,6 +109,7 @@ const PromptInputAttachmentsDisplay = () => {
 export const AIPromptInput = () => {
   const [model, setModel] = useState<string>(models[0].id);
   const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
+  const { sendPromptToServer, setPrompt } = useEditorStore();
   const [status, setStatus] = useState<
     "submitted" | "streaming" | "ready" | "error"
   >("ready");
@@ -116,16 +118,25 @@ export const AIPromptInput = () => {
 
   const handleSubmit = (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);
-    const hasAttachments = Boolean(message.files?.length);
 
-    if (!(hasText || hasAttachments)) {
+    if(!hasText) {
       return;
     }
+    // const hasAttachments = Boolean(message.files?.length);
+
+    // if (!(hasText || hasAttachments)) {
+    //   return;
+    // }
+
+    setPrompt(message.text);
+    
+    sendPromptToServer();
+
 
     setStatus("submitted");
 
     // eslint-disable-next-line no-console
-    console.log("Submitting message:", message);
+    //console.log("Submitting message:", message.text);
 
     setTimeout(() => {
       setStatus("streaming");

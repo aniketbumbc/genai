@@ -5,7 +5,7 @@ import NodeCache from 'node-cache';
 
 dotenv.config(); // Load .env variables
 
-const tvly = tavily({ apiKey: process.env.TAVILY_API_KEY });
+const tvly = tavily({ apiKey: process.env.TAVILY_API_KEY }); // search from web
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const nodeCache = new NodeCache({ stdTTL: 60 * 60 * 24 }); // 24 hours TTL.
 
