@@ -21,6 +21,16 @@ export const useEditorStore = create<EditorState>()(
       //setPrompt: (prompt: string) => set({ prompt });
       console.log('Sending prompt to server:', prompt);
       console.log('Image URL:', imageUrl);
+      const response = await fetch('/api/editImage', {
+        method: 'POST',
+        body: JSON.stringify({ imageUrl, prompt }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to send prompt to server');
+      }
+      const data = await response.json();
+      console.log('Response from server:', data);
+      //return data;
     },
   })),
 );
