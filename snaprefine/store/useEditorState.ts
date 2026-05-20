@@ -18,7 +18,7 @@ export const useEditorStore = create<EditorState>()(
     sendPromptToServer: async () => {
       const prompt = get().prompt;
       const imageUrl = get().imageUrl;
-      //setPrompt: (prompt: string) => set({ prompt });
+
       console.log('Sending prompt to server:', prompt);
       console.log('Image URL:', imageUrl);
       const response = await fetch('/api/editImage', {
