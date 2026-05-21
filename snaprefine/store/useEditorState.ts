@@ -29,8 +29,8 @@ export const useEditorStore = create<EditorState>()(
         throw new Error('Failed to send prompt to server');
       }
       const data = await response.json();
-      console.log('Response from server:', data);
-      //return data;
+      set({ imageUrl: data.imageUrl });
+      return data;
     },
   })),
 );
