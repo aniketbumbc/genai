@@ -11,6 +11,11 @@ type EditorState = {
   history: string[];
   setHistory: (history: string[]) => void;
   setHistoryIndex: (historyIndex: number) => void;
+  undoImage: () => void;
+  redoImage: () => void;
+  clearHistory: () => void;
+  isHistoryOpen: boolean;
+  setIsHistoryOpen: () => void;
 };
 
 export const useEditorStore = create<EditorState>()(
@@ -29,6 +34,41 @@ export const useEditorStore = create<EditorState>()(
       });
     },
     prompt: '',
+    undoImage: () => {
+      const state = get();
+      if (state.historyIndex > 0) {
+        const newIndex = state.historyIndex - 1;
+        set({ historyIndex: newIndex });
+        set({ imageUrl: state.history[newIndex] });
+      }
+    },
+    isHistoryOpen: true,
+    setIsHistoryOpen: () => {
+      const state = get();
+
+      if (state.imageUrl) {
+        set({ isHistoryOpen: !state.isHistoryOpen });
+      }
+    },
+    redoImage: () => {
+      const state = get();
+      if (
+        state.historyIndex < state.history.length - 1 &&
+        state.historyIndex >= 0
+      ) {
+        const newIndex = state.historyIndex + 1;
+        set({ historyIndex: newIndex });
+        set({ imageUrl: state.history[newIndex] });
+      }
+    },
+    clearHistory: () => {
+      const state = get();
+      if (state.history.length > 0) {
+        const currentImageUrl = state.history[state.historyIndex];
+        set({ history: [currentImageUrl] });
+        set({ historyIndex: 0 });
+      }
+    },
     sendPromptToServer: async () => {
       const prompt = get().prompt;
       const imageUrl = get().imageUrl;

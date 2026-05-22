@@ -14,7 +14,7 @@ import { useEditorStore } from '@/store/useEditorState';
 export default function Home() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
- const { imageUrl, setImageUrl } = useEditorStore();
+ const { imageUrl, setImageUrl, isHistoryOpen } = useEditorStore();
   const handleSelectImage = () => {
     fileInputRef.current?.click();
   }
@@ -107,7 +107,7 @@ export default function Home() {
 
 
           {/* RIGHT COLUMNS EDIT HISTORY */}
-          <RightSidebar />
+          {isHistoryOpen && <RightSidebar />}
         </div>
       </div>
     </>

@@ -14,7 +14,7 @@ import { useEditorStore } from "@/store/useEditorState";
 
 export const RightSidebar = () => {
 
-  const {history,setHistoryIndex,historyIndex} = useEditorStore();
+  const {history,setHistoryIndex,historyIndex, clearHistory} = useEditorStore();
   return (
     <aside className="flex h-full w-40 flex-col shrink-0 border-l border-zinc-800 bg-zinc-950/50 z-20 overflow-hidden">
       <div className="flex-1 min-h-0 w-full">
@@ -79,8 +79,8 @@ export const RightSidebar = () => {
                 variant="ghost"
                 size="sm"
                 className="w-full text-zinc-500 hover:text-red-400 hover:bg-zinc-900 rounded-lg"
-                onClick={() => {}}
-                disabled={true}
+                onClick={clearHistory}
+                disabled={history.length === 0}
               >
                 <Trash2 size={14} className="mr-2" />
                 <span className="text-xs">Clear History</span>

@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Download, History, Redo, Undo, Upload, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useEditorStore } from "@/store/useEditorState";
 
 export function Navbar() {
+  const { undoImage, redoImage, historyIndex, history, setIsHistoryOpen ,isHistoryOpen} = useEditorStore();
   return (
     <header className="h-16 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between px-4 shrink-0 z-50">
       {/* Left: Branding */}
@@ -27,7 +29,7 @@ export function Navbar() {
           </div>
           <span className="text-zinc-100 hidden md:block tracking-tight">
             {`Coder's`}
-            <span className="text-yellow-500">Banana</span>
+            <span className="text-yellow-500">Cool AI Image Editor</span>
           </span>
         </Link>
       </div>
@@ -40,6 +42,8 @@ export function Navbar() {
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
+            onClick={undoImage}
+            disabled={historyIndex === 0}
           >
             <Undo size={15} />
           </Button>
@@ -50,6 +54,8 @@ export function Navbar() {
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
+            onClick={redoImage}
+            disabled={historyIndex === history.length - 1}
           >
             <Redo size={15} />
           </Button>
@@ -84,14 +90,16 @@ export function Navbar() {
           <div className="h-6 w-px bg-zinc-700 mx-2"></div>
 
           <Button
+            onClick={() => setIsHistoryOpen()}
             variant="ghost"
             size="icon"
             className={cn(
-              "h-9 w-9 transition-all duration-200 bg-zinc-800 text-zinc-100 border border-zinc-700",
+              "h-9 w-9 transition-all duration-200 bg-zinc-800 text-zinc-100 border border-zinc-700 cursor-pointer",
+              isHistoryOpen ? "bg-yellow-500 text-zinc-950" : "text-zinc-100"
             )}
             title="Open History"
           >
-            <History size={18} />
+            <History size={18} className={isHistoryOpen ? "text-zinc-950" : "text-zinc-100"} />
           </Button>
         </div>
       </div>
