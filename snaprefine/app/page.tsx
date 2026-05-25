@@ -14,7 +14,7 @@ import { useEditorStore } from '@/store/useEditorState';
 export default function Home() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
- const { imageUrl, setImageUrl, isHistoryOpen } = useEditorStore();
+ const { imageUrl, setImageUrl, isHistoryOpen, isLoading } = useEditorStore();
   const handleSelectImage = () => {
     fileInputRef.current?.click();
   }
@@ -96,7 +96,7 @@ export default function Home() {
               </div>
 
               {/* render when image in generating */}
-              {/* <ImageGenerationLoading /> */}
+              {isLoading && <ImageGenerationLoading />}
             </div>
 
             {/* PROMPT INPUT AREA */}

@@ -5,6 +5,8 @@ type EditorState = {
   imageUrl: string | null;
   setImageUrl: (imageUrl: string) => void;
   prompt: string;
+  isLoading: boolean;
+  setIsLoading: (isLoading: boolean) => void;
   historyIndex: number;
   setPrompt: (prompt: string) => void;
   sendPromptToServer: () => Promise<void>;
@@ -23,6 +25,8 @@ export const useEditorStore = create<EditorState>()(
     imageUrl: null,
     history: [] as string[],
     historyIndex: 0,
+    isLoading: false,
+    setIsLoading: (isLoading: boolean) => set({ isLoading }),
     setImageUrl: (imageUrl: string) => set({ imageUrl }),
     setHistory: (history: string[]) => set({ history }),
     setPrompt: (prompt: string) => set({ prompt }),
@@ -72,6 +76,7 @@ export const useEditorStore = create<EditorState>()(
     sendPromptToServer: async () => {
       const prompt = get().prompt;
       const imageUrl = get().imageUrl;
+      set({ isLoading: true });
 
       set(() => ({
         history: [...get().history, imageUrl],
@@ -90,6 +95,7 @@ export const useEditorStore = create<EditorState>()(
       clonedHistory.push(data.imageUrl);
       set({ historyIndex: clonedHistory.length - 1 });
       set({ history: clonedHistory });
+      set({ isLoading: false });
       return data;
     },
   })),
