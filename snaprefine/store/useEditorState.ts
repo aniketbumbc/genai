@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { FileUIPart } from 'ai';
 import { devtools } from 'zustand/middleware';
 
 type EditorState = {
@@ -18,6 +19,8 @@ type EditorState = {
   clearHistory: () => void;
   isHistoryOpen: boolean;
   setIsHistoryOpen: () => void;
+  usersFiles: FileUIPart[];
+  setUsersFiles: (usersFiles: FileUIPart[]) => void;
 };
 
 export const useEditorStore = create<EditorState>()(
@@ -26,6 +29,8 @@ export const useEditorStore = create<EditorState>()(
     history: [] as string[],
     historyIndex: 0,
     isLoading: false,
+    usersFiles: [],
+    setUsersFiles: (usersFiles: FileUIPart[]) => set({ usersFiles }),
     setIsLoading: (isLoading: boolean) => set({ isLoading }),
     setImageUrl: (imageUrl: string) => set({ imageUrl }),
     setHistory: (history: string[]) => set({ history }),
@@ -76,6 +81,7 @@ export const useEditorStore = create<EditorState>()(
     sendPromptToServer: async () => {
       const prompt = get().prompt;
       const imageUrl = get().imageUrl;
+      const usersFiles = get().usersFiles;
       set({ isLoading: true });
 
       set(() => ({
@@ -84,7 +90,7 @@ export const useEditorStore = create<EditorState>()(
 
       const response = await fetch('/api/editImage', {
         method: 'POST',
-        body: JSON.stringify({ imageUrl, prompt }),
+        body: JSON.stringify({ imageUrl, prompt, usersFiles }),
       });
       if (!response.ok) {
         throw new Error('Failed to send prompt to server');

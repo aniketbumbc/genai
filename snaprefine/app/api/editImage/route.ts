@@ -6,8 +6,28 @@ import OpenAI from 'openai';
  * @returns
  */
 export async function POST(request: Request) {
-  const { imageUrl, prompt } = await request.json();
+  const { imageUrl, prompt, usersFiles } = await request.json();
+  const structuredContent = [];
+  structuredContent.push(
+    {
+      type: 'input_text',
+      text: prompt,
+    },
 
+    {
+      type: 'input_image',
+      image_url: imageUrl,
+    },
+  );
+
+  if (Array.isArray(usersFiles) && usersFiles?.length > 0) {
+    usersFiles.forEach((file) =>
+      structuredContent.push({
+        type: 'input_image',
+        image_url: file.url,
+      }),
+    );
+  }
   if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json({ error: 'OPENAI_API_KEY is not set' });
   }
@@ -15,22 +35,13 @@ export async function POST(request: Request) {
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
-  //   model: 'gemini-3.1-flash-image-preview',
-  //   contents: parts,
-  // });
 
   const response = await openai.responses.create({
     model: 'gpt-5.5',
     input: [
       {
         role: 'user',
-        content: [
-          { type: 'input_text', text: prompt },
-          {
-            type: 'input_image',
-            image_url: imageUrl,
-          },
-        ],
+        content: structuredContent,
       },
     ],
     tools: [{ type: 'image_generation' }],
