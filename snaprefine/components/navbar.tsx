@@ -9,7 +9,20 @@ import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/useEditorState";
 
 export function Navbar() {
-  const { undoImage, redoImage, historyIndex, history, setIsHistoryOpen ,isHistoryOpen} = useEditorStore();
+  const { undoImage, redoImage, historyIndex, history, setIsHistoryOpen ,isHistoryOpen, imageUrl} = useEditorStore();
+
+  const handleExport = () => {
+    const link = document.createElement("a");
+    link.href = imageUrl;
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}-${String(now.getMinutes()).padStart(2,'0')}`;
+    link.download = `image_${timestamp}.png`;
+    link.click();
+  }
+
+
+
+
   return (
     <header className="h-16 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between px-4 shrink-0 z-50">
       {/* Left: Branding */}
@@ -78,10 +91,12 @@ export function Navbar() {
           <Button
             variant="default"
             size="sm"
-            className="h-9 bg-yellow-500 text-zinc-950 hover:bg-yellow-400 font-bold px-2.5 md:px-4"
+            className="h-9 bg-yellow-500 text-zinc-950 hover:bg-yellow-400 font-bold px-2.5 md:px-4 cursor-pointer"
+            onClick={handleExport}
+            disabled={!imageUrl}
           >
             <span className="hidden md:inline">Export</span>
-            <Download size={14} className="md:ml-2" />
+            <Download size={14} className="md:ml-2"  />
           </Button>
         </div>
 

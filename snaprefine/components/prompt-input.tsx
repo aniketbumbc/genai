@@ -107,6 +107,7 @@ const PromptInputAttachmentsDisplay = () => {
 };
 
 export const AIPromptInput = () => {
+  const { isLoading } = useEditorStore();
   const [model, setModel] = useState<string>(models[0].id);
   const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
   const { sendPromptToServer, setPrompt } = useEditorStore();
@@ -224,7 +225,7 @@ export const AIPromptInput = () => {
                 </ModelSelectorContent>
               </ModelSelector>
             </PromptInputTools>
-            <PromptInputSubmit status={status} />
+            <PromptInputSubmit status={status} disabled={isLoading} />
           </PromptInputFooter>
         </PromptInput>
     </div>
