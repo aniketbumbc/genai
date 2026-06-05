@@ -21,6 +21,7 @@ type EditorState = {
   setIsHistoryOpen: () => void;
   usersFiles: FileUIPart[];
   setUsersFiles: (usersFiles: FileUIPart[]) => void;
+  applyFilter: (filterPrompt: string) => void;
 };
 
 export const useEditorStore = create<EditorState>()(
@@ -103,6 +104,31 @@ export const useEditorStore = create<EditorState>()(
       set({ history: clonedHistory });
       set({ isLoading: false });
       return data;
+    },
+
+    applyFilter: async (filterPrompt: string) => {
+      set({ isLoading: true });
+      const imageUrl = get().imageUrl;
+      const history = get().history;
+      const finalPromt = `${filterPrompt} 
+      Technical constraint: 
+       1. Strictly preserve composition do not change the subject pose the camera angle or placement objects.
+       2. Output Format: this is a style transfer keep underlying structure of the image identical to the original only changing the picture structure lightning and the colors to match the request style.
+      `;
+      const response = await fetch('/api/editImage', {
+        method: 'POST',
+        body: JSON.stringify({ imageUrl, prompt: finalPromt }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to apply filter');
+      }
+      const data = await response.json();
+      const clonedHistory = [...get().history];
+      clonedHistory.push(data.imageUrl);
+      set({ history: clonedHistory });
+      set({ imageUrl: data.imageUrl });
+      set({ historyIndex: history.length });
+      set({ isLoading: false });
     },
   })),
 );
