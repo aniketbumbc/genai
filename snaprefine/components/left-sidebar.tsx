@@ -27,7 +27,7 @@ import { ToolButton } from "@/components//tool-button";
 import { useEditorStore } from "@/store/useEditorState";
 
 export const LeftSidebar = () => {
-  const { applyFilter,isLoading } = useEditorStore();
+  const { applyFilter,isLoading,applyExpansion,applyRemoveBackground } = useEditorStore();
   return (
     <aside className="hidden md:flex w-80 flex-col border-r border-zinc-800 bg-zinc-950/50 z-20 shrink-0 h-full">
       <ScrollArea className="h-full w-full">
@@ -121,9 +121,9 @@ export const LeftSidebar = () => {
                       label={"Remove Background"}
                       // desc={"clear background"}
                       onClick={()=>{
-
+                        applyRemoveBackground();
                       }}
-                      disabled={true}
+                      disabled={isLoading}
                     />
                     <GridItem
                       icon={Sparkles}
@@ -182,9 +182,9 @@ export const LeftSidebar = () => {
                         label={r.label}
                         desc={r.desc}
                         onClick={() => {
-
+                          applyExpansion(r.apiSize);
                         }}
-                        disabled={true}
+                        disabled={isLoading}
                       />
                     ))}
                   </div>

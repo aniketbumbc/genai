@@ -6,7 +6,7 @@ import OpenAI from 'openai';
  * @returns
  */
 export async function POST(request: Request) {
-  const { imageUrl, prompt, usersFiles } = await request.json();
+  const { imageUrl, prompt, usersFiles, aspectRatio } = await request.json();
   const structuredContent = [];
   structuredContent.push(
     {
@@ -44,7 +44,9 @@ export async function POST(request: Request) {
         content: structuredContent,
       },
     ],
-    tools: [{ type: 'image_generation' }],
+    tools: [
+      { type: 'image_generation', size: aspectRatio ? aspectRatio : undefined },
+    ],
   });
 
   const imageData = response.output

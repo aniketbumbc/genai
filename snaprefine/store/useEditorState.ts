@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { FileUIPart } from 'ai';
 import { devtools } from 'zustand/middleware';
+import { editImage } from '@/lib/editImage';
 
 type EditorState = {
   imageUrl: string | null;
@@ -22,7 +23,26 @@ type EditorState = {
   usersFiles: FileUIPart[];
   setUsersFiles: (usersFiles: FileUIPart[]) => void;
   applyFilter: (filterPrompt: string) => void;
+  applyExpansion: (aspectRatio: string) => void;
+  applyRemoveBackground: () => void;
 };
+
+function appendEditToHistory(
+  currentHistory: string[],
+  historyIndex: number,
+  sourceImageUrl: string | null,
+  resultImageUrl: string,
+): { history: string[]; historyIndex: number } {
+  const history =
+    currentHistory.length === 0 && sourceImageUrl
+      ? [sourceImageUrl, resultImageUrl]
+      : [...currentHistory.slice(0, historyIndex + 1), resultImageUrl];
+
+  return {
+    history,
+    historyIndex: history.length - 1,
+  };
+}
 
 export const useEditorStore = create<EditorState>()(
   devtools((set: any, get: any) => ({
@@ -89,14 +109,7 @@ export const useEditorStore = create<EditorState>()(
         history: [...get().history, imageUrl],
       }));
 
-      const response = await fetch('/api/editImage', {
-        method: 'POST',
-        body: JSON.stringify({ imageUrl, prompt, usersFiles }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to send prompt to server');
-      }
-      const data = await response.json();
+      const data = await editImage({ imageUrl, prompt, usersFiles });
       set({ imageUrl: data.imageUrl });
       const clonedHistory = [...get().history];
       clonedHistory.push(data.imageUrl);
@@ -109,26 +122,90 @@ export const useEditorStore = create<EditorState>()(
     applyFilter: async (filterPrompt: string) => {
       set({ isLoading: true });
       const imageUrl = get().imageUrl;
-      const history = get().history;
       const finalPromt = `${filterPrompt} 
       Technical constraint: 
        1. Strictly preserve composition do not change the subject pose the camera angle or placement objects.
        2. Output Format: this is a style transfer keep underlying structure of the image identical to the original only changing the picture structure lightning and the colors to match the request style.
       `;
-      const response = await fetch('/api/editImage', {
-        method: 'POST',
-        body: JSON.stringify({ imageUrl, prompt: finalPromt }),
+      const data = await editImage({ imageUrl, prompt: finalPromt });
+      const { history: newHistory, historyIndex: newIndex } =
+        appendEditToHistory(
+          get().history,
+          get().historyIndex,
+          imageUrl,
+          data.imageUrl,
+        );
+      set({
+        history: newHistory,
+        imageUrl: data.imageUrl,
+        historyIndex: newIndex,
+        isLoading: false,
       });
-      if (!response.ok) {
-        throw new Error('Failed to apply filter');
+    },
+    applyExpansion: async (aspectRatio: string) => {
+      set({ isLoading: true });
+      const imageUrl = get().imageUrl;
+      const prompt = get().prompt;
+      if (!imageUrl) {
+        return;
       }
-      const data = await response.json();
-      const clonedHistory = [...get().history];
-      clonedHistory.push(data.imageUrl);
-      set({ history: clonedHistory });
-      set({ imageUrl: data.imageUrl });
-      set({ historyIndex: history.length });
-      set({ isLoading: false });
+      const baseInstruction = `high fidelity outpainting. analyze the visual context of the original image and seamlessly extend the scenery into empty areas.
+     Ensure the person's face and feature remain completely unchanged.`;
+
+      const technicalConstraint = `
+     Technical constraint:
+     1. Strictly preserve composition do not change the subject pose the camera angle or placement objects.
+     2. Output Format: this is a style transfer keep underlying structure of the image identical to the original only changing the picture structure lightning and the colors to match the request style.
+     `;
+
+      const userContext = prompt
+        ? `Additional context/subject for extension is: ${prompt}`
+        : '';
+
+      const finalPrompt = `${baseInstruction}
+      ${technicalConstraint}
+      ${userContext}
+      `;
+      const data = await editImage({
+        imageUrl,
+        prompt: finalPrompt,
+        aspectRatio: aspectRatio,
+      });
+      const { history: newHistory, historyIndex: newIndex } =
+        appendEditToHistory(
+          get().history,
+          get().historyIndex,
+          imageUrl,
+          data.imageUrl,
+        );
+      set({
+        history: newHistory,
+        imageUrl: data.imageUrl,
+        historyIndex: newIndex,
+        isLoading: false,
+      });
+    },
+
+    applyRemoveBackground: async () => {
+      const imageUrl = get().imageUrl;
+      if (!imageUrl) {
+        return;
+      }
+      set({ isLoading: true });
+      const data = await editImage({ imageUrl, prompt: 'remove background' });
+      const { history: newHistory, historyIndex: newIndex } =
+        appendEditToHistory(
+          get().history,
+          get().historyIndex,
+          imageUrl,
+          data.imageUrl,
+        );
+      set({
+        history: newHistory,
+        imageUrl: data.imageUrl,
+        historyIndex: newIndex,
+        isLoading: false,
+      });
     },
   })),
 );
