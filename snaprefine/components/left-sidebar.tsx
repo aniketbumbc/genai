@@ -10,7 +10,7 @@ import {
   Maximize,
   Delete,
 } from "lucide-react";
-
+import { ToolType } from "@/lib/constants";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -27,7 +27,7 @@ import { ToolButton } from "@/components//tool-button";
 import { useEditorStore } from "@/store/useEditorState";
 
 export const LeftSidebar = () => {
-  const { applyFilter,isLoading,applyExpansion,applyRemoveBackground } = useEditorStore();
+  const { applyFilter,isLoading,applyExpansion,applyRemoveBackground,setSelectedTool,selectedTool } = useEditorStore();
   return (
     <aside className="hidden md:flex w-80 flex-col border-r border-zinc-800 bg-zinc-950/50 z-20 shrink-0 h-full">
       <ScrollArea className="h-full w-full">
@@ -41,26 +41,26 @@ export const LeftSidebar = () => {
 
             <div className="grid grid-cols-4 gap-2">
               <ToolButton
-                active={true}
-                onClick={()=>{}}
+                active={selectedTool === ToolType.PAN}
+                onClick={()=>{setSelectedTool(ToolType.PAN);}}
                 icon={<Hand size={18} />}
                 label="Pan"
               />
               <ToolButton
-                active={false}
-                onClick={() => {}}
+                active={selectedTool === ToolType.SELECT}
+                onClick={() => {setSelectedTool(ToolType.SELECT);}}
                 icon={<Square size={18} />}
                 label="Select"
               />
               <ToolButton
-                active={false}
-                onClick={()=>{}}
+                active={selectedTool === ToolType.BRUSH}
+                onClick={()=>{setSelectedTool(ToolType.BRUSH);}}
                 icon={<Brush size={18} />}
                 label="Brush"
               />
               <ToolButton
-                active={false}
-                onClick={()=>{}}
+                active={selectedTool === ToolType.ERASE}
+                onClick={()=>{setSelectedTool(ToolType.ERASE);}}
                 icon={<Eraser size={18} />}
                 label="Erase"
               />

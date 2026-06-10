@@ -175,3 +175,10 @@ export const ratios = [
     desc: 'Pinterest',
   },
 ];
+
+export enum ToolType {
+  PAN = 'pan',
+  SELECT = 'select',
+  BRUSH = 'brush',
+  ERASE = 'erase',
+}

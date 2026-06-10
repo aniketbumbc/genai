@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { FileUIPart } from 'ai';
 import { devtools } from 'zustand/middleware';
 import { editImage } from '@/lib/editImage';
+import { ToolType } from '@/lib/constants';
 
 type EditorState = {
   imageUrl: string | null;
@@ -25,6 +26,8 @@ type EditorState = {
   applyFilter: (filterPrompt: string) => void;
   applyExpansion: (aspectRatio: string) => void;
   applyRemoveBackground: () => void;
+  selectedTool: ToolType;
+  setSelectedTool: (selectedTool: ToolType) => void;
 };
 
 function appendEditToHistory(
@@ -207,5 +210,7 @@ export const useEditorStore = create<EditorState>()(
         isLoading: false,
       });
     },
+    selectedTool: ToolType.PAN,
+    setSelectedTool: (selectedTool: ToolType) => set({ selectedTool }),
   })),
 );
