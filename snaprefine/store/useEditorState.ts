@@ -28,6 +28,8 @@ type EditorState = {
   applyRemoveBackground: () => void;
   selectedTool: ToolType;
   setSelectedTool: (selectedTool: ToolType) => void;
+  brushSize: number;
+  setBrushSize: (brushSize: number) => void;
 };
 
 function appendEditToHistory(
@@ -212,5 +214,7 @@ export const useEditorStore = create<EditorState>()(
     },
     selectedTool: ToolType.PAN,
     setSelectedTool: (selectedTool: ToolType) => set({ selectedTool }),
+    brushSize: 50,
+    setBrushSize: (brushSize: number) => set({ brushSize }),
   })),
 );
