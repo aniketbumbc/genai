@@ -5,6 +5,7 @@ type EditImageParams = {
   prompt: string;
   usersFiles?: FileUIPart[];
   aspectRatio?: string;
+  maskImageUrl?: string;
 };
 
 type EditImageResponse = {

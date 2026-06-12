@@ -2,9 +2,10 @@
 import { useEditorStore } from "@/store/useEditorState";
 import { useRef, useEffect } from "react";
 import { ToolType } from "@/lib/constants";
+import NextImage from "next/image";
 
 const ImageEditor = () => {
-  const { selectedTool, imageUrl, brushSize } = useEditorStore();
+  const { selectedTool, imageUrl, brushSize, setMaskImageUrl,maskImageUrl } = useEditorStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const startRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -31,6 +32,10 @@ const ImageEditor = () => {
       canvas.width = image.naturalWidth;
       canvas.height = image.naturalHeight;
 
+      maskCanvasRef.current = document.createElement("canvas");
+      maskCanvasRef.current.width = image.width;
+      maskCanvasRef.current.height = image.height;
+
       if (maskDisplayRef.current) {
         maskDisplayRef.current.width = image.naturalWidth;
         maskDisplayRef.current.height = image.naturalHeight;
@@ -40,6 +45,10 @@ const ImageEditor = () => {
         overlayCanvasRef.current.width = image.naturalWidth;
         overlayCanvasRef.current.height = image.naturalHeight;
       }
+
+      overlayCanvasRef.current = document.createElement("canvas");
+      overlayCanvasRef.current.width = image.width;
+      overlayCanvasRef.current.height = image.height;
 
       // Offscreen mask — detached, never touches overlayCanvasRef
       const offscreen = document.createElement("canvas");
@@ -148,17 +157,25 @@ const ImageEditor = () => {
   const handlePointerUp = (event: React.PointerEvent<HTMLCanvasElement>) => {
     event.preventDefault();
     isDrawingRef.current = false;
+    const imageDataUrl = overlayCanvasRef.current?.toDataURL('image/png');
+    setMaskImageUrl(imageDataUrl);
   };
 
   return (
-    <div className="w-full h-full grid grid-cols-3 gap-2 items-center justify-center overflow-auto">
-      <canvas ref={overlayCanvasRef} className="max-w-full max-h-full border-2 border-blue-500 rounded" />
+    <div className="w-full h-full flex items-center justify-center">
+      {/* <canvas ref={overlayCanvasRef} className="max-w-full max-h-full border-2 border-blue-500 rounded" /> */}
+     {/* {
+      maskImageUrl && <NextImage src={maskImageUrl || ''} alt="mask image" width={500} height={500} className="object-contain" />
+     } */}
+
+
+
       <canvas ref={canvasRef} className="max-w-full max-h-full border-2 border-emerald-500 rounded"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
       />
-      <canvas ref={maskDisplayRef} className="max-w-full max-h-full border-2 border-rose-500 rounded" />
+      {/* <canvas ref={maskDisplayRef} className="max-w-full max-h-full border-2 border-rose-500 rounded" /> */}
     </div>
   );
 };

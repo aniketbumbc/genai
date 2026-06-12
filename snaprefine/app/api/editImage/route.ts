@@ -6,7 +6,9 @@ import OpenAI from 'openai';
  * @returns
  */
 export async function POST(request: Request) {
-  const { imageUrl, prompt, usersFiles, aspectRatio } = await request.json();
+  const { imageUrl, prompt, usersFiles, aspectRatio, maskImageUrl } =
+    await request.json();
+
   const structuredContent = [];
   structuredContent.push(
     {
@@ -19,6 +21,13 @@ export async function POST(request: Request) {
       image_url: imageUrl,
     },
   );
+
+  if (maskImageUrl) {
+    structuredContent.push({
+      type: 'input_image',
+      image_url: maskImageUrl,
+    });
+  }
 
   if (Array.isArray(usersFiles) && usersFiles?.length > 0) {
     usersFiles.forEach((file) =>
