@@ -89,6 +89,7 @@ const ImageEditor = () => {
     const ctx = offscreen.getContext("2d");
     if (!ctx) return;
 
+    if(selectedTool === ToolType.BRUSH){
     ctx.lineWidth = brushSize;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -97,6 +98,9 @@ const ImageEditor = () => {
     ctx.moveTo(startPoint.x, startPoint.y);
     ctx.lineTo(endPoint.x, endPoint.y);
     ctx.stroke();
+    }
+
+
 
     const displayCtx = maskDisplayRef.current?.getContext("2d");
     if (displayCtx && maskDisplayRef.current) {
@@ -151,12 +155,54 @@ const ImageEditor = () => {
     if (selectedTool === ToolType.BRUSH || selectedTool === ToolType.ERASE) {
       updateMaskImage(startPosition, currentPosition);
       startRef.current = currentPosition;
+    }else if(selectedTool === ToolType.SELECT){
+      const canvas = canvasRef.current;
+      const ctx = canvas?.getContext("2d");
+      if (!ctx || !canvas || !imageRef.current) return;
+    
+      // Wipe and redraw the image to remove previous rect
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(imageRef.current, 0, 0);
+    
+      // Draw the current selection rect
+      const width = currentPosition.x - startPosition.x;
+      const height = currentPosition.y - startPosition.y;
+    
+      ctx.save();
+      ctx.fillStyle = "rgba(231, 165, 165, 0.2)";
+     // ctx.strokeStyle = "rgba(99, 102, 241, 1)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 3]);
+      ctx.fillRect(startPosition.x, startPosition.y, width, height);
+      ctx.strokeRect(startPosition.x, startPosition.y, width, height);
+      ctx.restore();
     }
   };
 
   const handlePointerUp = (event: React.PointerEvent<HTMLCanvasElement>) => {
     event.preventDefault();
     isDrawingRef.current = false;
+    if (selectedTool === ToolType.SELECT) {
+     const endPostion = getPointerPosition(event);
+     const startPostion = startRef.current;
+     if(!startPostion || !endPostion) return;
+
+     const ctx = maskCanvasRef.current?.getContext("2d");
+     if(ctx){
+      ctx.fillStyle = "white";
+      const width = endPostion.x - startPostion.x;
+      const height = endPostion.y - startPostion.y;
+
+      if (Math.abs(width) > 0 && Math.abs(height) > 0) {
+        // 1. Bake white rect into mask
+        ctx.fillStyle = "white";
+        ctx.fillRect(startPostion.x, startPostion.y, width, height);
+
+        // 2. Push mask → overlay → main canvas
+        updateMaskImage(endPostion, endPostion);
+      }
+     }
+    }
     const imageDataUrl = overlayCanvasRef.current?.toDataURL('image/png');
     setMaskImageUrl(imageDataUrl);
   };
@@ -175,7 +221,7 @@ const ImageEditor = () => {
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
       />
-      {/* <canvas ref={maskDisplayRef} className="max-w-full max-h-full border-2 border-rose-500 rounded" /> */}
+      {/* <canvas ref={maskDisplayRef} className="w-80 h-80 border-2 border-rose-500 rounded" /> */}
     </div>
   );
 };
