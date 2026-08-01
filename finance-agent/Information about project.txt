@@ -1,0 +1,33 @@
+Project: finance-agent
+
+What it is:
+A command-line personal finance chatbot built with Node.js and the OpenAI API (gpt-4o-mini). It runs entirely in the terminal — there is no web UI or server.
+
+Main file:
+- agent.js — contains the entire app (chat loop, tool definitions, and tool implementations).
+
+How it works:
+1. System prompt frames the assistant as a "Finance Assistant" that can track income/expenses, give budgeting advice, forecast balances, and explain financial concepts in simple terms.
+2. Chat loop reads user input from the terminal (via Node's readline) in a loop until the user types "bye".
+3. On each turn, it sends the conversation to OpenAI's chat completions API along with 4 defined function tools:
+   - getTotalExpense(from, to) — meant to sum expenses within a date range
+   - addExpense(name, amount) — records a new expense
+   - addIncome(name, amount) — records a new income entry
+   - getTotalBalance() — computes total income minus total expenses
+4. Data storage — expenseDb and incomeDb are plain in-memory JavaScript arrays. There is no database or file persistence; all data is lost when the process restarts.
+5. When the model requests a tool call, the code runs the matching local JS function, feeds the result back into the conversation as a "tool" message, and loops until the model returns a final plain-text answer for the user.
+
+Dependencies:
+- openai — official OpenAI SDK, used to call gpt-4o-mini with function/tool calling.
+- dotenv — loads OPENAI_API_KEY from a local .env file.
+
+Setup requirements:
+- A .env file in the project root with OPENAI_API_KEY set.
+- Run with: node agent.js
+
+Known limitations / gaps:
+- No persistent storage (in-memory arrays reset on every restart).
+- getTotalExpense ignores the from/to date range parameters — it currently sums all expenses regardless of dates.
+- The addExpense/addIncome tool schemas have their "name" and "amount" field descriptions mixed up (the example text is swapped).
+- amount fields are typed as strings in the tool schema but are summed with + in the reducers — relies on loose JS type coercion rather than real number validation.
+- No input validation or error handling around malformed tool arguments.
