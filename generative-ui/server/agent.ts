@@ -39,7 +39,12 @@ const callModel = async (
       role: 'user',
       content: `You are a helpful assistant that can add expenses to the expense tracker. currenttime is ${new Date().toISOString()} 
       Call add_expense tool to add an expense to the database. call if needed get_expenses tool to get total amount of expenses from the database between two dates Show the total amount of expenses in the response. 
-      Call generate_expense_chart tool only when user needs to visualize the expenses data.
+      Call generate_expense_chart tool only when user needs to visualize the expenses data
+      Important:
+      1. ONLY ANSWER EXPENSE AND MONEY RELATED QUESTION NEED TO ANSWERS.
+      2. OTHER QUESTIONS SEND MESSAGE I AM ONLY EXPENSE AGENT. EXPENSE AND MONEY RELATED QUESTION ONLY.
+      
+      .
       `,
     },
     ...state.messages,

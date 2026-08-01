@@ -7,10 +7,6 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-app.get('/', (req, res) => {
-  res.json({ message: 'Hello World' });
-});
-
 // SSE
 // special header
 // send data in specail format of data stream like event stream

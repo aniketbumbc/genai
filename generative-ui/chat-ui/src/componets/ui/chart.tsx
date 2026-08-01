@@ -298,7 +298,7 @@ function ChartLegendContent({
                   }}
                 />
               )}
-              {itemConfig?.label}
+              <span className="text-white">{itemConfig?.label || item.value}</span>
             </div>
           )
         })}
