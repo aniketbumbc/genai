@@ -3,23 +3,31 @@ import { END, MemorySaver, StateGraph } from '@langchain/langgraph';
 import { model } from './model.js';
 import { StateAnnotation } from './state.js';
 import { ToolNode } from '@langchain/langgraph/prebuilt';
-import { getOffers, getKnowledgeBaseTool } from './tools.js';
+import { getOffers, getKnowledgeBaseTool, OUT_OF_SCOPE_MESSAGE } from './tools.js';
 const learningTools = [getKnowledgeBaseTool];
 const marketingTools = [getOffers];
 const marketingToolNode = new ToolNode(marketingTools);
 const learningToolNode = new ToolNode(learningTools);
 
 export const frontDeskSupport = async (state) => {
-  const SYSTEM_PROMPT = `You are frontline support staff for my website, 
-  a company that helps software developers excel in their careers through practical 
-  web development and generative AI courses. 
-  Be concise in your response. 
-  You can chat with students and help them with basic queries, 
-  but if the student is having a marketing or learning support query, do not try to answer the question directly or gather information. 
-  Instead, immediately transfer them to marketing team, for example, promos, code, discount, offer, and special campaigns, 
-  or learning support team, for example, course, example coverage, learning path, and 
-  study strategy by asking the user to hold for a moment I am working on it. 
-  Otherwise, just respond conversationally.`;
+  const lastMessage = state.messages.at(-1);
+  const lastQuery =
+    typeof lastMessage?.content === 'string' ? lastMessage.content : '';
+  const kbContext = await getKnowledgeBaseTool.invoke({ query: lastQuery });
+
+  const SYSTEM_PROMPT = `You are frontline support staff for my website,
+  a company that helps software developers excel in their careers through practical
+  web development and generative AI courses.
+  Be concise in your response.
+  You can chat with students and help them with basic queries,
+  but if the student is having a marketing or learning support query, do not try to answer the question directly or gather information.
+  Instead, immediately transfer them to marketing team, for example, promos, code, discount, offer, and special campaigns,
+  or learning support team, for example, course, example coverage, learning path, and
+  study strategy by asking the user to hold for a moment I am working on it.
+  Otherwise, just respond conversationally.
+
+  Knowledge base context retrieved for the student's latest message (use it only if relevant, otherwise ignore it):
+  ${kbContext}`;
 
   const supportResponse = await model.invoke([
     {
@@ -66,11 +74,11 @@ Otherwise, respond only if the word is "RESPOND".
       response_format: {
         type: 'json_object',
       },
-    }
+    },
   );
 
   const categorizationResponseOutput = JSON.parse(
-    categorizationResponse.content
+    categorizationResponse.content,
   );
 
   return {
@@ -110,14 +118,16 @@ export const marketingSupport = async (state) => {
 };
 
 export const learningSupport = async (state) => {
-  console.log('Handling by learning support team.....');
-  const llmWithTools = model.bindTools(learningTools);
+  const SYSTEM_PROMPT = `You are part of the learning support team at CodeScan, a tech company.
+  The company helps software developers excel in their careers through practical web development and generative AI courses.
+  You assist students with questions about available courses, syllabus coverage, learning paths, and study strategies to keep your answers concise and supportive.
+  Strictly use information for retrieved context for answering queries. If the query is about learning issues, politely redirect the student to the respective team.
+  Important: Call getKnowledgeBaseTool max 3 times if the tool result is not relevant to the original query.
+  Guardrail: If getKnowledgeBaseTool returns "${OUT_OF_SCOPE_MESSAGE}", or the retrieved context otherwise has no relevant answer to the student's question,
+  do not attempt to answer from your own knowledge. Instead, reply exactly: "This question is out of scope for me. Please connect with the admin for help."
+  `;
 
-  const SYSTEM_PROMPT = `You are part of the learning support team at CodeScan, a tech company. 
-  The company helps software developers excel in their careers through practical web development and generative AI courses. 
-  You assist students with questions about available courses, syllabus coverage, learning paths, and study strategies to keep your answers concise and supportive. 
-  Strictly use information for retrieved context for answering queries. If the query is about learning issues, politely redirect the student to the respective team. 
-  Important: Call getKnowledgeBaseTool max 3 times if the tool result is not relevant to the original query.`;
+  const llmWithTools = model.bindTools(learningTools);
 
   let constructMessage = state.messages;
 
@@ -211,12 +221,12 @@ export const main = async () => {
           },
         ],
       },
-      { configurable: { thread_id: '1' } } // to add id dynamic
+      { configurable: { thread_id: '1' } }, // to add id dynamic
     );
 
     console.log(
       'Assistant: ',
-      state.messages[state.messages.length - 1].content
+      state.messages[state.messages.length - 1].content,
     );
   }
 
