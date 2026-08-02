@@ -16,6 +16,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from './ui/chart';
+import { useTheme } from '@/lib/theme';
 
 // Categorical palette (dark-surface steps) — fixed order, never cycled.
 const CATEGORY_COLORS = [
@@ -63,9 +64,14 @@ export function ExpenseChart({
   chartData: ChartElement[];
   labelKey: string;
 }) {
+  const { theme } = useTheme();
+
   if (!chartData || chartData.length === 0) {
     return null;
   }
+
+  const sliceStroke = theme === 'dark' ? '#1a1a19' : '#ffffff';
+  const gridStroke = theme === 'dark' ? '#2c2c2a' : '#e4e4e7';
 
   // Few periods -> proportions read better as a donut.
   // Many periods -> a trend over time reads better as a line.
@@ -78,7 +84,7 @@ export function ExpenseChart({
     return (
       <ChartContainer
         config={chartConfig}
-        className="min-h-[280px] w-full max-w-md py-12 bg-zinc-900 rounded-xl my-4 p-4">
+        className="min-h-[280px] w-full max-w-md py-12 bg-card rounded-xl my-4 p-4">
         <PieChart accessibilityLayer>
           <ChartTooltip
             content={
@@ -106,7 +112,6 @@ export function ExpenseChart({
               />
             }
             cursor={false}
-            className="bg-white text-zinc-900 border border-zinc-200 shadow-sm"
           />
           <Pie
             data={donutData}
@@ -116,7 +121,7 @@ export function ExpenseChart({
             outerRadius={90}
             paddingAngle={2}
             strokeWidth={2}
-            stroke="#1a1a19">
+            stroke={sliceStroke}>
             {donutData.map((entry, index) => (
               <Cell
                 key={entry[labelKey] as string}
@@ -140,13 +145,12 @@ export function ExpenseChart({
   return (
     <ChartContainer
       config={chartConfig}
-      className="min-h-[280px] w-full max-w-md py-12 bg-zinc-900 rounded-xl my-4 p-4">
+      className="min-h-[280px] w-full max-w-md py-12 bg-card rounded-xl my-4 p-4">
       <LineChart accessibilityLayer data={chartData}>
-        <CartesianGrid vertical={false} stroke="#2c2c2a" />
+        <CartesianGrid vertical={false} stroke={gridStroke} />
         <ChartTooltip
           content={<ChartTooltipContent hideLabel />}
           cursor={false}
-          className="bg-white text-zinc-900 border border-zinc-200 shadow-sm"
         />
         <XAxis
           dataKey={labelKey}

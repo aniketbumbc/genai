@@ -44,10 +44,10 @@ export function ChatInput({ onSubmit }: Props) {
   }, [input])
 
   return (
-    <div className="bg-zinc-950 backdrop-blur-xl w-full">
-      <div className="w-full max-w-5xl mx-auto p-2">
+    <div className="bg-background backdrop-blur-xl w-full">
+      <div className="w-full max-w-5xl mx-auto p-2 mb-2 box">
         <form onSubmit={handleSubmit} className="relative">
-          <div className="relative flex items-end gap-3 bg-zinc-900 rounded-3xl border-zinc-600 focus-within:border-purple-500 transition-all shadow-2xl">
+          <div className="relative flex items-end gap-3 bg-card rounded-3xl border border-border focus-within:border-purple-500 transition-all shadow-2xl dark:shadow-black/40">
             <textarea
               ref={textareaRef}
               value={input}
@@ -56,7 +56,7 @@ export function ChatInput({ onSubmit }: Props) {
               placeholder="Send a message..."
               disabled={false}
               rows={1}
-              className="flex-1 bg-transparent text-white placeholder-zinc-400 px-6 py-6 resize-none focus:outline-none max-h-48 overflow-y-auto disabled:opacity-50 text-base"
+              className="flex-1  text-foreground placeholder-muted-foreground px-6 py-6 resize-none focus:outline-none max-h-48 overflow-y-auto disabled:opacity-50 text-base"
             />
             <button
               type="submit"

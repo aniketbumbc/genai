@@ -1,25 +1,35 @@
-import { User, Wrench } from 'lucide-react';
+import { Wrench } from 'lucide-react';
 import type { StreamMessage } from '../type.ts';
 import { ExpenseChart } from './ExpenseChart.tsx';
+import { useAuth } from '@/lib/auth';
 
 type Props = {
   message: StreamMessage;
 };
 export function ChatMessage({ message }: Props) {
+  const { user } = useAuth();
+  const displayName = user?.username
+    ? user.username.charAt(0).toUpperCase() + user.username.slice(1)
+    : 'User';
+
   console.log(message);
   if (message.type === 'user') {
     return (
       <div className="flex gap-4 py-6 px-6 transition-colors">
         <div className="shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-linear-to-br from-white-500 via-white-500 to-gray-500 flex items-center justify-center shadow-lg">
-            <User color="white" />
+          <div className="w-12 h-12 rounded-lg overflow-hidden shadow-lg">
+            <img
+              src="/user-profile.png"
+              alt="User avatar"
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
         <div className="flex-1 space-y-2 overflow-hidden">
-          <div className="text-sm font-medium text-zinc-300">
-            User
+          <div className="text-sm font-medium text-foreground/70">
+            {displayName}
           </div>
-          <div className="text-zinc-100 whitespace-pre-wrap wrap-break-word leading-7">
+          <div className="text-foreground whitespace-pre-wrap wrap-break-word leading-7">
             {message.payload.text}
           </div>
         </div>
@@ -29,7 +39,7 @@ export function ChatMessage({ message }: Props) {
     return (
       <div className="flex gap-4 py-6 px-6 transition-colors">
         <div className="shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-linear-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center shadow-lg">
+          <div className="w-10 h-10 rounded-lg bg-linear-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center shadow-lg">
             <svg
               className="w-5 h-5 text-white"
               fill="none"
@@ -45,10 +55,10 @@ export function ChatMessage({ message }: Props) {
           </div>
         </div>
         <div className="flex-1 space-y-2 overflow-hidden">
-          <div className="text-sm font-medium text-zinc-300">
-            AI Assistant
+          <div className="text-sm font-medium text-foreground/70">
+            Expense Assistant
           </div>
-          <div className="text-zinc-100 whitespace-pre-wrap wrap-break-word leading-7">
+          <div className="text-foreground whitespace-pre-wrap wrap-break-word leading-7">
             {message.payload.text}
           </div>
         </div>
@@ -58,18 +68,18 @@ export function ChatMessage({ message }: Props) {
     return (
       <div className="flex gap-4 py-4 px-6">
         <div className="shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-zinc-700 flex items-center justify-center">
-            <Wrench color="gray" />
+          <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+            <Wrench className="text-muted-foreground" />
           </div>
         </div>
         <div className="flex-1 space-y-2">
-          <div className="text-sm text-zinc-400 italic">
+          <div className="text-sm text-muted-foreground italic">
             Using tool:{' '}
-            <span className="text-purple-400 font-medium">
+            <span className="text-purple-600 dark:text-purple-400 font-medium">
               {message.payload.name}
             </span>
           </div>
-          <div className="text-xs text-zinc-300 bg-purple-900/15 rounded-lg p-3 font-mono whitespace-pre-wrap">
+          <div className="text-xs text-foreground/90 bg-purple-500/10 rounded-lg p-3 font-mono whitespace-pre-wrap">
             {JSON.stringify(message.payload.args, null, 2)}
           </div>
         </div>
@@ -79,9 +89,9 @@ export function ChatMessage({ message }: Props) {
     return (
       <div className="flex gap-4 py-4 px-6">
         <div className="shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-green-900/15 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
             <svg
-              className="w-4 h-4 text-green-400"
+              className="w-4 h-4 text-green-600 dark:text-green-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor">
@@ -95,13 +105,13 @@ export function ChatMessage({ message }: Props) {
           </div>
         </div>
         <div className="flex-1 space-y-2">
-          <div className="text-sm text-zinc-400">
+          <div className="text-sm text-muted-foreground">
             Tool result:{' '}
-            <span className="text-green-400 font-medium">
+            <span className="text-green-600 dark:text-green-400 font-medium">
               {message.payload.name}
             </span>
           </div>
-          <div className="text-xs text-zinc-300 bg-green-900/20 rounded-lg p-3 font-mono whitespace-pre-wrap">
+          <div className="text-xs text-foreground/90 bg-green-500/10 rounded-lg p-3 font-mono whitespace-pre-wrap">
             {JSON.stringify(
               message.payload.result,
               null,
@@ -115,7 +125,7 @@ export function ChatMessage({ message }: Props) {
               labelKey={message.payload.result.labelKey}
             />
           )}
-          <h1 className="text-zinc-100 text-2xl font-bold">Chart data by {message.payload.result.labelKey}</h1>
+          <h1 className="text-foreground text-2xl font-bold">Chart data by {message.payload.result.labelKey}</h1>
         </div>
       </div>
     );
