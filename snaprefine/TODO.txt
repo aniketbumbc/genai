@@ -1,0 +1,77 @@
+SNAPREFINE - PRODUCTION READINESS TODO
+
+CRITICAL - fix before any prod deploy
+--------------------------------------
+1. API errors are silently swallowed. app/api/editImage/route.ts (lines 41 and 72)
+   return NextResponse.json({error: ...}) with a default 200 status. The client
+   check `if (!response.ok) throw` in lib/editImage.ts (line 16) never fires -
+   every failure (missing key, no image returned, OpenAI throwing) is treated as
+   success, and data.imageUrl becomes undefined.
+   Fix: NextResponse.json({error}, {status: 400/500})
+
+2. No try/catch around openai.responses.create in route.ts. If OpenAI errors
+   (rate limit, bad model id, timeout), Next.js returns an unhandled 500 HTML
+   error page, and response.json() on the client throws a JSON parse error
+   instead of your intended error message.
+
+3. No auth or rate limiting on /api/editImage. It's a public POST endpoint that
+   burns OpenAI credits per call. Anyone who finds the URL can spend money
+   unbounded. Need at minimum per-IP/user rate limiting (e.g. Upstash
+   Ratelimit) and ideally real auth.
+
+4. No input validation. imageUrl, prompt, usersFiles, maskImageUrl are used
+   straight from request.json() with no shape/size checks (no zod/type guard).
+   A malformed or huge payload goes straight to OpenAI.
+
+5. Verify the model id. route.ts line 49 hardcodes model: 'gpt-5.5' - confirm
+   this is a real, available model on the OpenAI account before shipping; if
+   it's wrong every request fails (and per point 1/2 you won't see a clean
+   error).
+
+HIGH - will bite soon after launch
+--------------------------------------
+6. Uploaded images have no size/type cap. app/page.tsx (lines 23-32) reads any
+   file the user selects into a base64 data URL with no limit - a 50MB photo
+   will bloat memory, the request body, and the OpenAI bill.
+
+7. No persistence. Edit history lives only in Zustand memory
+   (store/useEditorState.ts) - a page refresh loses all work, and there's no
+   way to save/share a project. Likely need a DB + object storage (S3/Vercel
+   Blob) for images instead of passing base64 around forever.
+
+8. Base64 images everywhere. Every edit sends the full image (plus mask, plus
+   reference files) as base64 in the JSON body and gets a fresh base64 PNG
+   back. This is slow, memory-heavy, and doesn't scale - should upload once to
+   blob storage and pass URLs around instead.
+
+9. Dead/unused config: GEMINI_API_KEY and @google/genai are declared but never
+   referenced anywhere in the code. Either wire it up or remove it.
+
+10. No observability. Only a stray console.log on one error path (route.ts
+    line 71). No structured logging, no error tracking (Sentry), no request
+    metrics - blind to failures in prod.
+
+MEDIUM - do before scaling up
+--------------------------------------
+11. No tests at all (unit/integration/e2e) - nothing catches regressions in
+    the store logic or API route.
+
+12. No CI/CD - no .github/workflows, so nothing runs lint/typecheck/build on
+    PRs.
+
+13. No security headers / CSP in next.config.ts - worth adding basic headers
+    (X-Frame-Options, CSP, etc.) since this handles user-uploaded images and
+    calls a paid third-party API.
+
+14. No content moderation on user prompts before sending to image generation -
+    consider whether to filter obviously abusive prompts vs. relying solely on
+    OpenAI's built-in moderation.
+
+15. README is unmodified create-next-app boilerplate - no deployment docs, no
+    required env vars listed for the next engineer who touches this.
+
+SUGGESTED FIRST PASS
+--------------------------------------
+Start with items 1 and 2 (proper HTTP status codes + try/catch) plus basic
+input validation and a simple rate limiter (3/4) - quick, self-contained, and
+the difference between "works in dev" and "safe to expose publicly."
