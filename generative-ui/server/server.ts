@@ -14,6 +14,7 @@ import {
 const app = express();
 app.use(express.json());
 app.use(cors());
+const PORT = process.env.PORT || 4100;
 
 // single shared db instance for auth routes (and passed into the agent factory)
 const db = initDb('./expenses.db');
@@ -145,6 +146,8 @@ app.post('/chat', requireAuth, async (req: AuthedRequest, res) => {
   res.end();
 });
 
-app.listen(4100, () => {
-  console.log('Server is running on port 4100 Host: http://localhost:4100');
+app.listen(PORT, () => {
+  console.log(
+    `Server is running on port ${PORT} Host: http://localhost:${PORT}`,
+  );
 });

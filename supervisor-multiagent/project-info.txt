@@ -1,0 +1,17 @@
+What supervisor-multiagent is
+It's a LangChain/LangGraph multi-agent personal assistant built in JS (Node, ESM), using gpt-5-mini via @langchain/openai. It follows a supervisor/sub-agent pattern from LangChain's docs.
+
+Architecture:
+
+Supervisor agent (superVisor.js) — the top-level agent the user talks to via a CLI REPL in index.js. It has 3 tools, each of which is really a wrapper that delegates to a dedicated sub-agent:
+contact_search → contactAgent — looks up people by team (engineering/sales/marketing/design) from a hardcoded CONTACT_LIST in constant-prompt.js
+schedule_event → calendarAgent — parses natural language into ISO datetimes, checks availability (get_available_time_slots), creates events (create_calendar_event)
+manage_email → emailAgent — composes and sends emails (send_email)
+Sub-agents and their tools live in agents.js and base-tools.js. All the actual API calls (send email, create event) are stubs that just return a string — no real Gmail/Calendar integration yet.
+Notable feature — human-in-the-loop approval:
+The emailAgent uses humanInTheLoopMiddleware so any send_email call pauses for human approval (approve/edit/reject) before actually "sending." The CLI in index.js handles this by catching result.__interrupt__, printing the drafted email, and resuming the LangGraph run with the user's choice (1/2/3) via Command({ resume }).
+
+Other files:
+
+data.txt and interuptData.js look like scratch/notes files — sample prompts and example interrupt payloads the author was using to test/design the approval flow, not part of the runtime code.
+Current state: it's a working prototype/demo — driven from the terminal with npm run dev, state persisted in-memory via MemorySaver (checkpointer), all external actions stubbed out. It reflects the multi-agent "supervisor with subagents" pattern documented in the LangChain JS docs link left as a comment at the bottom of index.js.
